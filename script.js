@@ -28,28 +28,25 @@ window.togglePass = () => {
 const driveConvert = (url) => {
     if (!url || url === "-" || url.trim() === "") return null;
     
-    // Jika link berasal dari Google Drive
     if (url.includes("drive.google.com")) {
         let fileId = "";
-        
         try {
             if (url.includes("/file/d/")) {
-                // Format: https://drive.google.com/file/d/ID_FILE/view
                 fileId = url.split("/file/d/")[1].split("/")[0].split("?")[0];
             } else if (url.includes("id=")) {
-                // Format: https://drive.google.com/open?id=ID_FILE
                 fileId = url.split("id=")[1].split("&")[0];
             }
             
             if (fileId) {
-                // Gunakan thumbnail link (lebih stabil untuk render di aplikasi web)
-                return `https://lh3.googleusercontent.com/u/0/d/${fileId}`;
+                // Menggunakan endpoint render thumbnail dengan ukuran besar (s1000)
+                // Ini jauh lebih stabil daripada uc?id=
+                return `https://lh3.googleusercontent.com/u/0/d/${fileId}=w1000-iv1`;
             }
         } catch (e) {
-            console.error("Gagal konversi link Drive:", e);
+            console.error("Link Drive tidak valid");
         }
     }
-    return url; // Kembalikan URL asli jika bukan drive atau gagal konversi
+    return url;
 };
 
 // --- 3. LOGIN & START ---
@@ -190,3 +187,4 @@ document.addEventListener("visibilitychange", () => {
 
 
 initApp();
+
