@@ -3,11 +3,34 @@ const API_URL = 'https://cbt.donnyn1980.workers.dev';
 
 const id = (e) => document.getElementById(e);
 
-// --- 1. RENDER UI AWAL ---
+const showLoader = (show, text = "Harap Tunggu...") => {
+    id('loader').style.display = show ? 'flex' : 'none';
+    id('loader-text').innerText = text;
+};
+
+const driveConvert = (url) => {
+    if (!url || url === "-" || url.trim() === "") return null;
+    if (url.includes("drive.google.com")) {
+        let fileId = "";
+        try {
+            if (url.includes("/file/d/")) {
+                fileId = url.split("/file/d/")[1].split("/")[0].split("?")[0];
+            } else if (url.includes("id=")) {
+                fileId = url.split("id=")[1].split("&")[0];
+            }
+            if (fileId) {
+                // HTTPS + Format googleusercontent (Stabil di Mobile)
+                return `https://googleusercontent.com/profile/picture/0{fileId}=w800-iv1`;
+            }
+        } catch (e) { console.error("Converter Drive Error"); }
+    }
+    return url;
+};
+
 const initApp = () => {
     id('login-root').innerHTML = `
-        <div class="card" style="max-width:400px; margin:auto">
-            <h2 style="text-align:center">LOGIN UJIAN</h2>
+        <div class="card" style="max-width:400px; margin: 50px auto;">
+            <h2 style="text-align:center; color: var(--primary)">LOGIN UJIAN</h2>
             <div class="input-group"><input type="text" id="nisn" placeholder="NISN"></div>
             <div class="input-group">
                 <input type="password" id="pass" placeholder="Password">
@@ -24,58 +47,39 @@ window.togglePass = () => {
     p.type = p.type === 'password' ? 'text' : 'password';
 };
 
-// --- 2. LOGIKA GOOGLE DRIVE CONVERTER ---
-const driveConvert = (url) => {
-    if (!url || url === "-" || url.trim() === "") return null;
-    
-    if (url.includes("drive.google.com")) {
-        let fileId = "";
-        try {
-            if (url.includes("/file/d/")) {
-                fileId = url.split("/file/d/")[1].split("/")[0].split("?")[0];
-            } else if (url.includes("id=")) {
-                fileId = url.split("id=")[1].split("&")[0];
-            }
-            
-            if (fileId) {
-                // Menggunakan endpoint render thumbnail dengan ukuran besar (s1000)
-                // Ini jauh lebih stabil daripada uc?id=
-                return `https://lh3.googleusercontent.com/u/0/d/${fileId}=w1000-iv1`;
-            }
-        } catch (e) {
-            console.error("Link Drive tidak valid");
-        }
-    }
-    return url;
-};
-
-// --- 3. LOGIN & START ---
 window.login = async () => {
-    const payload = { nisn: id('nisn').value, password: id('pass').value, token: id('token').value };
-    const r = await fetch(`${API_URL}/login`, { method: 'POST', body: JSON.stringify(payload) });
-    const d = await r.json();
-    if(d.success) {
-        u = d.siswa; ex = d.infoUjian; ex.total = d.totalSoal;
-        id('p-login').classList.remove('active'); id('p-info').classList.add('active');
-        id('info-root').innerHTML = `
-            <div class="card">
-                <h3>Halo, ${u.nama}</h3>
-                <p>Mapel: ${ex.mapel}<br>Kelas: ${u.kelas}<br>Guru: ${ex.nama_guru}<br>Durasi: ${ex.durasi} Menit</p>
-                <button class="btn btn-blue" onclick="start()">MULAI UJIAN</button>
-            </div>
-        `;
-    } else alert("Data Salah!");
+    const nisn = id('nisn').value, pass = id('pass').value, tok = id('token').value;
+    if(!nisn || !pass || !tok) return alert("Harap isi semua kolom!");
+
+    showLoader(true, "Memverifikasi Password...");
+    try {
+        const r = await fetch(`${API_URL}/login`, { method: 'POST', body: JSON.stringify({ nisn, password: pass, token: tok }) });
+        const d = await r.json();
+        if(d.success) {
+            u = d.siswa; ex = d.infoUjian; ex.total = d.totalSoal;
+            id('p-login').classList.remove('active'); id('p-info').classList.add('active');
+            id('info-root').innerHTML = `
+                <div class="card">
+                    <h3>Halo, ${u.nama}</h3>
+                    <p style="line-height:1.8">Mata Pelajaran: <b>${ex.mapel}</b><br>Kelas: ${u.kelas}<br>Guru: ${ex.nama_guru}<br>Jumlah: ${ex.total} Soal<br>Durasi: ${ex.durasi} Menit</p>
+                    <button class="btn btn-blue" onclick="start()">MULAI UJIAN</button>
+                </div>
+            `;
+        } else alert("NISN, Password, atau Token salah!");
+    } catch(e) { alert("Server error!"); }
+    finally { showLoader(false); }
 };
 
 window.start = async () => {
     if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+    showLoader(true, "Mengambil Soal...");
     const r = await fetch(`${API_URL}/get-soal?token=${ex.token}`);
     qs = await r.json(); tIn = new Date(); isLive = true;
     id('p-info').classList.remove('active'); id('p-quiz').classList.add('active');
+    showLoader(false);
     runTimer(ex.durasi * 60); render();
 };
 
-// --- 4. CORE ENGINE ---
 const runTimer = (sec) => {
     tInt = setInterval(() => {
         let m = Math.floor(sec/60), s = sec%60;
@@ -90,12 +94,12 @@ const render = () => {
     
     let h = `<div class="card">
         ${s.st ? `<div class="stimulus">${s.st}</div>` : ''}
-        ${imgUrl ? `<img src="${imgUrl}" class="soal-img" alt="Gambar Soal">` : ''}
-        <p><b>No ${cur+1}:</b> ${s.q}</p>`;
+        ${imgUrl ? `<img src="${imgUrl}" class="soal-img" alt="Gambar Soal" loading="lazy">` : ''}
+        <p style="font-size:17px"><b>Soal ${cur+1}:</b> ${s.q}</p>`;
     
     if(s.tp === 'Kategori') {
         const baris = s.q.split(';');
-        h += `<table><tr><th>Kasus</th><th>${s.kat[0]}</th><th>${s.kat[1]}</th></tr>`;
+        h += `<table><tr><th>Kategori</th><th>${s.kat[0]}</th><th>${s.kat[1]}</th></tr>`;
         baris.forEach((txt, i) => {
             let a = (ans[s.id] || "").split(',');
             if(a.length !== baris.length) a = new Array(baris.length).fill("");
@@ -106,8 +110,9 @@ const render = () => {
         h += `</table>`;
     } else {
         const typ = s.tp === 'MCMA' ? 'checkbox' : 'radio';
+        const curV = ans[s.id] || "";
         s.opt.forEach(o => {
-            const isC = (ans[s.id] || "").split(',').includes(o.orig) ? 'checked' : '';
+            const isC = curV.split(',').includes(o.orig) ? 'checked' : '';
             h += `<label class="option-item"><input type="${typ}" name="q_${s.id}" value="${o.orig}" ${isC} onchange="saveAns(${s.id},'${s.tp}')"> ${o.text}</label>`;
         });
     }
@@ -125,7 +130,7 @@ window.saveAns = (id_soal, tipe) => {
     const vals = Array.from(document.querySelectorAll(`input[name="q_${id_soal}"]:checked`)).map(i => i.value);
     ans[id_soal] = vals.sort().join(',');
     updateGrid();
-    if(tipe === 'Sederhana') setTimeout(() => { if(cur < qs.length-1) move(1); }, 600);
+    if(tipe === 'Sederhana' && vals.length > 0) setTimeout(() => { if(cur < qs.length-1) move(1); }, 600);
 };
 
 window.saveKat = (id_soal, idx, val, total) => {
@@ -152,12 +157,16 @@ const updateGrid = () => {
     if(id('btn-finish')) id('btn-finish').style.display = (done === qs.length) ? 'block' : 'none';
 };
 
-window.move = (step) => { cur += step; render(); };
+window.move = (step) => { 
+    const next = cur + step;
+    if(next >= 0 && next < qs.length) { cur = next; render(); }
+};
 
-window.preFinish = () => { if(confirm("Kirim jawaban?")) autoFinish(); };
+window.preFinish = () => { if(confirm("Kirim jawaban sekarang?")) autoFinish(); };
 
 const autoFinish = async () => {
     clearInterval(tInt); isLive = false;
+    showLoader(true, "Mengirim Jawaban...");
     let b = 0;
     const sorted = [...qs].sort((x, y) => x.id - y.id);
     const logAns = sorted.map(q => {
@@ -167,17 +176,19 @@ const autoFinish = async () => {
     }).join('|');
 
     const body = {
-        nisn: u.nisn, nama: u.nama, nama_guru: ex.nama_guru, mapel: ex.mapel, kelas: u.kelas, jenjang: u.jenjang,
+        nisn: u.nisn, nama: u.nama, nama_guru: ex.nama_guru, mapel: ex.mapel, kelas: u.kelas, jenjang: ex.jenjang,
         nilai: (b/qs.length)*100, jml_curang: fraud, jml_benar: b, jml_salah: qs.length - b,
         wkt_masuk: tIn.toLocaleString(), wkt_submit: new Date().toLocaleString(),
         wkt_digunakan: `${Math.floor((new Date()-tIn)/60000)} Menit`, jawaban: logAns
     };
 
-    const res = await fetch(`${API_URL}/submit`, { method: 'POST', body: JSON.stringify(body) });
-    if(res.ok) { alert("Selesai!"); location.reload(); }
+    try {
+        const res = await fetch(`${API_URL}/submit`, { method: 'POST', body: JSON.stringify(body) });
+        if(res.ok) { alert("Jawaban berhasil dikirim!"); location.reload(); }
+    } catch(e) { alert("Gagal mengirim jawaban!"); }
+    finally { showLoader(false); }
 };
 
-// --- 5. SECURITY ---
 document.addEventListener("visibilitychange", () => {
     if (isLive && document.hidden) {
         fraud++;
@@ -185,6 +196,4 @@ document.addEventListener("visibilitychange", () => {
     }
 });
 
-
 initApp();
-
