@@ -44,8 +44,17 @@ input[type="text"], input[type="password"] {
 .box.now { background: #ffc107; border: 2px solid #333; }
 
 .stimulus { background: #f1f3f5; padding: 15px; border-left: 5px solid var(--primary); margin-bottom: 15px; font-style: italic; }
-.soal-img { max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0; display: block; }
-
+.soal-img { 
+    display: block;
+    max-width: 100%;       /* Gambar tidak akan melebihi lebar kotak soal */
+    max-height: 400px;     /* Batas tinggi maksimal agar tidak scroll terlalu jauh */
+    width: auto;           /* Menjaga rasio lebar tetap asli */
+    height: auto;          /* Menjaga rasio tinggi tetap asli */
+    margin: 15px auto;     /* Memberi jarak dan memposisikan di tengah */
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 1px solid #eee;
+}
 .option-item { display: block; padding: 15px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 10px; cursor: pointer; }
 table { width: 100%; border-collapse: collapse; margin-top: 10px; }
 th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
@@ -56,4 +65,5 @@ th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
 
 .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
 .btn-blue { background: var(--primary); color: white; }
+
 .btn-gray { background: #6c757d; color: white; }
