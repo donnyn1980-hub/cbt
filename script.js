@@ -26,13 +26,30 @@ window.togglePass = () => {
 
 // --- 2. LOGIKA GOOGLE DRIVE CONVERTER ---
 const driveConvert = (url) => {
-    if (!url || url === "-") return null;
+    if (!url || url === "-" || url.trim() === "") return null;
+    
+    // Jika link berasal dari Google Drive
     if (url.includes("drive.google.com")) {
-        const parts = url.split("/");
-        const fileId = parts.find(p => p.length > 25); // Mencari ID unik Drive
-        if (fileId) return `https://drive.google.com/uc?export=view&id=${fileId.split('?')[0]}`;
+        let fileId = "";
+        
+        try {
+            if (url.includes("/file/d/")) {
+                // Format: https://drive.google.com/file/d/ID_FILE/view
+                fileId = url.split("/file/d/")[1].split("/")[0].split("?")[0];
+            } else if (url.includes("id=")) {
+                // Format: https://drive.google.com/open?id=ID_FILE
+                fileId = url.split("id=")[1].split("&")[0];
+            }
+            
+            if (fileId) {
+                // Gunakan thumbnail link (lebih stabil untuk render di aplikasi web)
+                return `https://lh3.googleusercontent.com/u/0/d/${fileId}`;
+            }
+        } catch (e) {
+            console.error("Gagal konversi link Drive:", e);
+        }
     }
-    return url;
+    return url; // Kembalikan URL asli jika bukan drive atau gagal konversi
 };
 
 // --- 3. LOGIN & START ---
@@ -170,5 +187,6 @@ document.addEventListener("visibilitychange", () => {
         document.body.className = fraud >= 10 ? 'warn-r' : (fraud >= 5 ? 'warn-y' : '');
     }
 });
+
 
 initApp();
