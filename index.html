@@ -7,14 +7,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
-<body oncontextmenu="return false;">
+<body oncontextmenu="return false;" onkeydown="return disableInspect(event);">
 
     <div id="loader" class="loading-overlay">
         <div class="spinner"></div>
-        <div id="loader-text" style="font-weight: bold; color: #333;">Harap Tunggu...</div>
+        <div id="loader-text">Harap Tunggu...</div>
     </div>
 
-    <div id="p-login" class="page active container">
+    <div id="p-login" class="page container">
         <div id="login-root"></div>
     </div>
 
@@ -22,9 +22,9 @@
         <div id="info-root"></div>
     </div>
 
-    <div id="p-quiz" class="page" style="padding:0">
-        <div id="timer">MEMPERSIAPKAN...</div>
-        <div class="container" style="padding:20px">
+    <div id="p-quiz" class="page">
+        <div id="timer">--:--</div>
+        <div class="container" style="padding:15px">
             <div class="grid" id="nav-grid"></div>
             <div id="display-soal"></div>
             <div id="nav-buttons" style="display:flex; gap:10px;"></div>
@@ -32,7 +32,6 @@
     </div>
 
     <footer>2026 - Donny Nugroho</footer>
-
     <script src="script.js"></script>
 </body>
 </html>
