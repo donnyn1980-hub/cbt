@@ -3,22 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CBT Sniper Pro</title>
+    <title>CBT SNIPER PRO 2026</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body oncontextmenu="return false;">
-    <div id="p-login" class="page container"><div id="login-root"></div></div>
-    <div id="p-info" class="page container"><div id="info-root"></div></div>
-    <div id="p-quiz" class="page" style="padding:0">
+    <div id="loader" class="loader-overlay">
+        <div class="loader-content">
+            <i class="fas fa-circle-notch fa-spin"></i>
+            <p id="loader-text">Memproses Database...</p>
+        </div>
+    </div>
+
+    <div id="p-login" class="page container active">
+        <div class="card login-card">
+            <h2>LOGIN PESERTA</h2>
+            <input type="text" id="nisn" placeholder="Masukkan NISN">
+            <input type="password" id="pass" placeholder="Masukkan Password">
+            <input type="text" id="token" placeholder="Masukkan Token Ujian">
+            <button class="btn btn-blue" onclick="login()">MASUK</button>
+        </div>
+    </div>
+
+    <div id="p-info" class="page container">
+        <div class="card" id="info-content">
+            </div>
+    </div>
+
+    <div id="p-quiz" class="page">
         <div id="timer">SISA WAKTU: --:--</div>
-        <div class="container" style="padding:20px">
+        <div class="container main-quiz">
             <div id="nav-grid" class="grid"></div>
             <div id="display-soal"></div>
             <div id="nav-buttons"></div>
         </div>
     </div>
-    <footer>© 2026 - Donny Nugroho, S.Sos. - CBT Sniper v2.2</footer>
+
     <script src="script.js"></script>
 </body>
 </html>
