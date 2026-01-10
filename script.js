@@ -3,7 +3,7 @@ const API_URL = 'https://cbt.donnyn1980.workers.dev';
 
 const id = (e) => document.getElementById(e);
 
-// Keamanan: Disable Inspect Element (F12, Ctrl+Shift+I, Ctrl+U)
+// Keamanan: Disable F12, Inspect Element, dan View Source
 document.onkeydown = (e) => {
     if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || (e.ctrlKey && e.keyCode == 85)) return false;
 };
@@ -18,10 +18,13 @@ const driveConvert = (url) => {
     if (url.includes("drive.google.com")) {
         let fileId = "";
         try {
-            if (url.includes("/file/d/")) fileId = url.split("/file/d/")[1].split("/")[0].split("?")[0];
-            else if (url.includes("id=")) fileId = url.split("id=")[1].split("&")[0];
+            if (url.includes("/file/d/")) {
+                fileId = url.split("/file/d/")[1].split("/")[0].split("?")[0];
+            } else if (url.includes("id=")) {
+                fileId = url.split("id=")[1].split("&")[0];
+            }
             if (fileId) return `https://lh3.googleusercontent.com/d/${fileId}`;
-        } catch (e) { console.error("Drive Convert Error"); }
+        } catch (e) { console.error("Converter Drive Error"); }
     }
     return url;
 };
@@ -43,8 +46,9 @@ const loadSession = () => {
             render();
             const now = new Date().getTime();
             const startT = new Date(tIn).getTime();
+            const limitSec = ex.durasi * 60;
             const elapsed = Math.floor((now - startT) / 1000);
-            runTimer((ex.durasi * 60) - elapsed);
+            runTimer(limitSec - elapsed);
         } else {
             initApp();
             id('p-login').classList.add('active');
@@ -76,18 +80,11 @@ window.togglePass = () => {
 };
 
 window.login = async () => {
-    const nisnVal = id('nisn').value;
-    const passVal = id('pass').value;
-    const tokVal = id('token').value;
-
-    if(!nisnVal || !passVal || !tokVal) return alert("Lengkapi data login!");
-
-    showLoader(true, "Memverifikasi...");
+    const n = id('nisn').value, p = id('pass').value, t = id('token').value;
+    if(!n || !p || !t) return alert("Lengkapi data!");
+    showLoader(true, "Memverifikasi Password...");
     try {
-        const r = await fetch(`${API_URL}/login`, { 
-            method: 'POST', 
-            body: JSON.stringify({ nisn: nisnVal, password: passVal, token: tokVal }) 
-        });
+        const r = await fetch(`${API_URL}/login`, { method: 'POST', body: JSON.stringify({ nisn: n, password: p, token: t }) });
         const d = await r.json();
         if(d.success) {
             u = d.siswa; ex = d.infoUjian; ex.total = d.totalSoal;
@@ -95,14 +92,12 @@ window.login = async () => {
             id('info-root').innerHTML = `
                 <div class="card">
                     <h3>Halo, ${u.nama}</h3>
-                    <p>Mapel: ${ex.mapel} | Durasi: ${ex.durasi} Menit</p>
+                    <p><b>Mapel:</b> ${ex.mapel}<br><b>Kelas:</b> ${u.kelas}<br><b>Durasi:</b> ${ex.durasi} Menit</p>
                     <button class="btn btn-blue" onclick="start()">MULAI UJIAN</button>
                 </div>
             `;
-        } else {
-            alert("Akses Ditolak! NISN, Password, atau Token salah.");
-        }
-    } catch(e) { alert("Kesalahan koneksi server!"); }
+        } else alert("Akses Ditolak! Cek NISN/Password/Token.");
+    } catch(e) { alert("Server Error!"); }
     showLoader(false);
 };
 
@@ -114,7 +109,7 @@ window.start = async () => {
         id('p-info').classList.remove('active'); id('p-quiz').classList.add('active');
         saveSession();
         runTimer(ex.durasi * 60); render();
-    } catch(e) { alert("Gagal memuat soal!"); }
+    } catch(e) { alert("Gagal ambil soal!"); }
     showLoader(false);
 };
 
@@ -134,7 +129,7 @@ const render = () => {
     let h = `<div class="card">
         ${s.st ? `<div class="stimulus">${s.st}</div>` : ''}
         ${imgUrl ? `<img src="${imgUrl}" class="soal-img" onerror="this.src='https://placehold.co/400x200?text=Gambar+Drive+Dibatasi'">` : ''}
-        <p><b>Soal ${cur+1}:</b> ${s.q}</p>`;
+        <p style="font-size:18px"><b>Soal ${cur+1}:</b> ${s.q}</p>`;
 
     if(s.tp === 'Kategori') {
         const baris = s.q.split(';');
@@ -149,9 +144,9 @@ const render = () => {
         h += `</table>`;
     } else {
         const typ = s.tp === 'MCMA' ? 'checkbox' : 'radio';
-        const curV = ans[s.id] || "";
+        const curA = (ans[s.id] || "").split(',');
         s.opt.forEach(o => {
-            const isC = curV.split(',').includes(o.orig) ? 'checked' : '';
+            const isC = curA.includes(o.orig) ? 'checked' : '';
             h += `<label class="option-item"><input type="${typ}" name="q_${s.id}" value="${o.orig}" ${isC} onchange="saveAns(${s.id},'${s.tp}')"> ${o.text}</label>`;
         });
     }
@@ -165,15 +160,15 @@ const render = () => {
 };
 
 window.saveAns = (id_soal, tipe) => {
-    const vals = Array.from(document.querySelectorAll(`input[name="q_${id_soal}"]:checked`)).map(i => i.value);
-    ans[id_soal] = vals.sort().join(',');
+    const v = Array.from(document.querySelectorAll(`input[name="q_${id_soal}"]:checked`)).map(i => i.value);
+    ans[id_soal] = v.sort().join(',');
     saveSession(); updateGrid();
-    if(tipe === 'Sederhana' && vals.length > 0) setTimeout(() => move(1), 600);
+    if(tipe === 'Sederhana' && v.length > 0) setTimeout(() => move(1), 600);
 };
 
-window.saveKat = (id_soal, idx, val, total) => {
+window.saveKat = (id_soal, idx, val, tot) => {
     let a = (ans[id_soal] || "").split(',');
-    if(a.length !== total) a = new Array(total).fill("");
+    if(a.length !== tot) a = new Array(tot).fill("");
     a[idx] = val; ans[id_soal] = a.join(',');
     saveSession(); updateGrid();
     if(a.every(x => x !== "")) setTimeout(() => move(1), 600);
@@ -196,17 +191,17 @@ const updateGrid = () => {
 };
 
 window.move = (step) => { 
-    let n = cur + step; 
-    if(n >= 0 && n < qs.length) { cur = n; render(); saveSession(); }
+    let n = cur + step; if(n >= 0 && n < qs.length) { cur = n; render(); saveSession(); }
 };
 
-window.preFinish = () => { if(confirm("Yakin ingin mengirim jawaban sekarang?")) autoFinish(); };
+window.preFinish = () => { if(confirm("Kirim sekarang?")) autoFinish(); };
 
 const autoFinish = async () => {
     showLoader(true, "Mengirim Nilai...");
+    clearInterval(tInt);
     let b = 0;
-    const sorted = [...qs].sort((x, y) => x.id - y.id);
-    const logAns = sorted.map(q => {
+    const sorted = [...qs].sort((x,y) => x.id - y.id);
+    const logA = sorted.map(q => {
         const ua = ans[q.id] || "-";
         if(ua.replace(/\s/g,'') === q.key.replace(/\s/g,'')) b++;
         return ua;
@@ -214,23 +209,23 @@ const autoFinish = async () => {
 
     const body = {
         nisn: u.nisn, nama: u.nama, nama_guru: ex.nama_guru, mapel: ex.mapel, kelas: u.kelas, jenjang: ex.jenjang,
-        nilai: (b/qs.length)*100, jml_curang: fraud, jml_benar: b, jml_salah: qs.length - b,
+        nilai: (b/qs.length)*100, jml_curang: fraud, jml_benar: b, jml_salah: qs.length-b,
         wkt_masuk: new Date(tIn).toLocaleString(), wkt_submit: new Date().toLocaleString(),
-        wkt_digunakan: `${Math.floor((new Date()-new Date(tIn))/60000)} Menit`, jawaban: logAns
+        wkt_digunakan: `${Math.floor((new Date()-new Date(tIn))/60000)} Menit`, jawaban: logA
     };
 
     try {
         const res = await fetch(`${API_URL}/submit`, { method: 'POST', body: JSON.stringify(body) });
         if(res.ok) { localStorage.clear(); location.reload(); }
-        else { alert("Gagal menyimpan nilai!"); }
-    } catch(e) { alert("Error saat kirim!"); }
+        else alert("Gagal simpan ke DB!");
+    } catch(e) { alert("Koneksi bermasalah!"); }
     showLoader(false);
 };
 
 document.addEventListener("visibilitychange", () => {
     if (isLive && document.hidden) {
         fraud++; saveSession();
-        document.body.style.background = fraud >= 5 ? '#f8d7da' : '#f4f7f9';
+        document.body.className = fraud >= 10 ? 'warn-r' : (fraud >= 5 ? 'warn-y' : '');
     }
 });
 
