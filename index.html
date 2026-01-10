@@ -3,50 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CBT Pro System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>CBT Sniper Pro - Enterprise Edition</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body oncontextmenu="return false;" onselectstart="return false;">
 
     <div id="loader" class="loader-overlay">
-        <div class="loader-content">
-            <i class="fas fa-circle-notch fa-spin fa-3x"></i>
-            <p>Sinkronisasi Database D1...</p>
+        <div class="loader-backdrop"></div>
+        <div class="loader-box">
+            <div class="spinner"></div>
+            <p>SINKRONISASI DATABASE D1...</p>
         </div>
     </div>
 
-    <section id="p-login" class="page active">
-        <div class="card login-card">
-            <h2 class="brand-title">CBT LOGIN</h2>
-            <div class="input-group">
-                <label>Nomor Induk Siswa (NISN)</label>
-                <input type="text" id="nisn" placeholder="Masukkan NISN" autocomplete="off"> </div>
-            <div class="input-group">
-                <label>Kata Sandi</label>
-                <input type="password" id="pass" placeholder="Masukkan Password"> </div>
-            <div class="input-group">
-                <label>Token Ujian</label>
-                <input type="text" id="token" placeholder="Masukkan Token"> </div>
-            <button class="btn btn-blue" onclick="login()">VERIFIKASI MASUK</button>
+    <section id="p-login" class="page active login-bg">
+        <div class="login-wrapper">
+            <div class="glass-card login-card">
+                <div class="login-header">
+                    <i class="fas fa-shield-halved fa-3x"></i>
+                    <h2>CBT LOGIN</h2>
+                    <p>Silakan masuk untuk memulai ujian</p>
+                </div>
+                <div class="input-container">
+                    <div class="input-field">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="nisn" placeholder="Nomor Induk Siswa (NISN)" autocomplete="off">
+                    </div>
+                    <div class="input-field">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="pass" placeholder="Kata Sandi">
+                    </div>
+                    <div class="input-field">
+                        <i class="fas fa-key"></i>
+                        <input type="text" id="token" placeholder="6 Karakter Token Unik">
+                    </div>
+                </div>
+                <button class="btn-main btn-glow" onclick="login()">
+                    <span>VERIFIKASI MASUK</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+                <div class="login-footer">
+                    <p><i class="fas fa-user-shield"></i> Sistem dipantau untuk mencegah kecurangan</p>
+                </div>
+            </div>
         </div>
     </section>
 
     <section id="p-info" class="page">
-        <div class="card info-card">
-            <div id="info-render-area"></div> <button class="btn btn-blue" onclick="start()">MULAI UJIAN SEKARANG</button>
+        <div class="container">
+            <div class="card info-card slide-up">
+                <div class="card-header">
+                    <i class="fas fa-file-signature"></i>
+                    <h3>Konfirmasi Data Peserta</h3>
+                </div>
+                <div id="info-render-area" class="info-content">
+                    </div>
+                <div class="action-area">
+                    <button class="btn-main btn-blue" onclick="start()">
+                        <span>MULAI UJIAN SEKARANG</span>
+                        <i class="fas fa-play"></i>
+                    </button>
+                </div>
+            </div>
         </div>
     </section>
 
-    <section id="p-quiz" class="page" style="padding:0">
-        <div id="timer">SISA WAKTU: --:--</div> <div class="quiz-container">
-            <div class="grid" id="nav-grid"></div> <div id="display-soal"></div> <div class="nav-controls">
-                <button class="btn btn-gray" onclick="move(-1)">KEMBALI</button>
-                <button id="btn-next" class="btn btn-blue" onclick="move(1)">SELANJUTNYA</button>
+    <section id="p-quiz" class="page quiz-layout">
+        <header class="quiz-header">
+            <div class="timer-box">
+                <i class="fas fa-clock"></i>
+                <span id="timer">--:--</span>
             </div>
-            
-            <button id="btn-finish" class="btn btn-success" style="display:none; margin-top:20px" onclick="preFinish()">KIRIM SEMUA JAWABAN</button>
-        </div>
+            <div class="user-meta">
+                <span id="user-display">Memuat...</span>
+            </div>
+        </header>
+
+        <main class="quiz-main">
+            <aside class="quiz-sidebar">
+                <div class="sidebar-header">NAVIGASI SOAL</div>
+                <div class="grid" id="nav-grid"></div>
+            </aside>
+
+            <article class="quiz-content">
+                <div id="display-soal"></div>
+                
+                <footer class="quiz-footer">
+                    <div class="nav-btns">
+                        <button class="btn-nav btn-prev" onclick="move(-1)">
+                            <i class="fas fa-chevron-left"></i> KEMBALI
+                        </button>
+                        <button id="btn-next" class="btn-nav btn-next" onclick="move(1)">
+                            SELANJUTNYA <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <button id="btn-finish" class="btn-finish" style="display:none" onclick="preFinish()">
+                        <i class="fas fa-paper-plane"></i> KIRIM SEMUA JAWABAN
+                    </button>
+                </footer>
+            </article>
+        </main>
     </section>
 
     <script src="script.js"></script>
