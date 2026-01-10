@@ -1,132 +1,134 @@
 let u = {}, ex = {}, qs = [], ans = {}, cur = 0, fraud = 0, tIn, tInt, isLive = false;
-const API_URL = 'https://cbt.donnyn1980.workers.dev';
+const API = 'https://cbt.donnyn1980.workers.dev';
 const id = (e) => document.getElementById(e);
 
-const driveConvert = (url) => {
-    if (!url || url === "-" || url.trim() === "") return null;
-    let fId = "";
-    if (url.includes("/file/d/")) fId = url.split("/file/d/")[1].split("/")[0];
-    else if (url.includes("id=")) fId = url.split("id=")[1].split("&")[0];
-    return fId ? `https://lh3.googleusercontent.com/d/${fId}` : url;
+// Loader Logic [cite: 3, 46]
+const setLoader = (show, text = "Memproses...") => {
+    id('loader').style.display = show ? 'flex' : 'none';
+    id('loader-text').innerText = text;
 };
 
-const saveSession = () => localStorage.setItem('cbt_sniper_v2_final', JSON.stringify({ u, ex, qs, ans, cur, fraud, tIn, isLive }));
+// Tahap 1: Login [cite: 22, 66]
+async function login() {
+    setLoader(true, "Memverifikasi Akun...");
+    const payload = { nisn: id('nisn').value, password: id('pass').value, token: id('token').value };
+    try {
+        const r = await fetch(`${API}/login`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+        const d = await r.json();
+        setLoader(false);
+        if (d.success) {
+            u = d.siswa; ex = d.infoUjian; ex.total = d.totalSoal;
+            showInfo();
+        } else alert(d.msg);
+    } catch (e) { setLoader(false); alert("Gagal terhubung ke server."); }
+}
 
-const loadSession = () => {
-    const stored = localStorage.getItem('cbt_sniper_v2_final');
-    if (stored) {
-        const s = JSON.parse(stored); Object.assign(window, s);
-        if (isLive) {
-            id('p-login').classList.remove('active'); id('p-quiz').classList.add('active');
-            render(); runTimer((ex.durasi * 60) - Math.floor((new Date() - new Date(tIn)) / 1000));
-        } else if (u && u.nama) { showWelcome(); } else { initApp(); }
-    } else { initApp(); }
-};
-
-const initApp = () => {
-    id('p-login').classList.add('active');
-    id('login-root').innerHTML = `<div class="card" style="max-width:400px; margin: auto;">
-        <h2 style="text-align:center; color: var(--primary)">CBT LOGIN</h2>
-        <input type="text" id="nisn" placeholder="NISN" style="margin-bottom:15px">
-        <input type="password" id="pass" placeholder="Password" style="margin-bottom:15px">
-        <input type="text" id="token" placeholder="Token Ujian" style="margin-bottom:15px">
-        <button class="btn btn-blue" onclick="login()">MASUK</button></div>`;
-};
-
-window.login = async () => {
-    const n = id('nisn').value, p = id('pass').value, t = id('token').value;
-    const r = await fetch(`${API_URL}/login`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ nisn: n, password: p, token: t }) });
-    const d = await r.json();
-    if(d.success) { u = d.siswa; ex = d.infoUjian; ex.total = d.totalSoal; saveSession(); showWelcome(); } 
-    else alert("Login Gagal! Pastikan NISN/Pass benar dan Ujian berstatus aktif (1).");
-};
-
-const showWelcome = () => {
-    id('p-login').classList.remove('active'); id('p-info').classList.add('active');
-    id('info-root').innerHTML = `<div class="card">
-        <h2 style="color:var(--primary)">Selamat Datang, ${u.nama}</h2>
-        <div style="background:#e7f1ff; padding:20px; border-radius:12px; margin-bottom:20px">
-            <p><b>Mata Pelajaran:</b> ${ex.mata_pelajaran}</p><p><b>Guru:</b> ${ex.nama_guru}</p>
-            <p><b>Durasi:</b> ${ex.durasi} Menit</p><p><b>Jumlah Soal:</b> ${ex.total}</p>
+// Halaman Konfirmasi [cite: 27, 52, 71]
+function showInfo() {
+    id('p-login').classList.remove('active');
+    id('p-info').classList.add('active');
+    id('info-content').innerHTML = `
+        <h2>Konfirmasi Data</h2>
+        <p>Halo, <b>${u.nama}</b> (${u.kelas}), Anda akan mengerjakan Ujian dengan rincian sebagai berikut:</p>
+        <div style="background:#f0f7ff; padding:15px; border-radius:10px; margin:15px 0;">
+            <p><b>Mata Pelajaran:</b> ${ex.mata_pelajaran}</p>
+            <p><b>Guru Pengampu:</b> ${ex.nama_guru}</p>
+            <p><b>Jumlah Soal:</b> ${ex.total}</p>
+            <p><b>Durasi:</b> ${ex.durasi} Menit</p>
         </div>
-        <button class="btn btn-blue" onclick="start()">MULAI UJIAN</button></div>`;
-};
+        <button class="btn btn-blue" onclick="startUjian()">MULAI UJIAN SEKARANG</button>
+    `;
+}
 
-window.start = async () => {
-    const r = await fetch(`${API_URL}/get-soal?token=${ex.token}`);
-    qs = await r.json(); tIn = new Date().toISOString(); isLive = true;
-    id('p-info').classList.remove('active'); id('p-quiz').classList.add('active');
-    saveSession(); runTimer(ex.durasi * 60); render();
-};
+// Tahap 2: Sinkronisasi Soal [cite: 28, 72, 73]
+async function startUjian() {
+    setLoader(true, "Mengambil Soal...");
+    try {
+        const r = await fetch(`${API}/get-soal?token=${ex.token}`);
+        qs = await r.json();
+        setLoader(false);
+        tIn = new Date().toISOString();
+        isLive = true;
+        id('p-info').classList.remove('active');
+        id('p-quiz').classList.add('active');
+        runTimer(ex.durasi * 60); // [cite: 32, 76]
+        render();
+    } catch (e) { setLoader(false); alert("Gagal mengambil soal."); }
+}
 
-const runTimer = (sec) => {
+function runTimer(sec) {
     tInt = setInterval(() => {
-        if (sec <= 0) { clearInterval(tInt); autoFinish(); }
-        id('timer').innerText = `SISA WAKTU: ${Math.floor(sec/60)}:${sec%60<10?'0':''}${sec%60}`;
+        if (sec <= 0) { clearInterval(tInt); finish(); }
+        id('timer').innerText = `SISA WAKTU: ${Math.floor(sec/60)}:${sec%60 < 10 ? '0' : ''}${sec%60}`;
         sec--;
     }, 1000);
-};
+}
 
-const render = () => {
-    const s = qs[cur], imgUrl = driveConvert(s.img);
-    let h = `<div class="card">${s.st ? `<div class="stimulus">${s.st}</div>` : ''}
-        ${imgUrl ? `<img src="${imgUrl}" class="soal-img">` : ''}
-        <p style="font-size:18px"><b>Soal ${cur+1}:</b> ${s.q}</p>`;
-
-    if(s.tp === 'Kategori') {
-        h += `<table><tr><th>Item</th><th>${s.kat[0]}</th><th>${s.kat[1]}</th></tr>`;
-        s.q.split(';').forEach((txt, i) => {
-            let a = (ans[s.id] || "").split(','); if(a.length !== s.q.split(';').length) a = new Array(s.q.split(';').length).fill("");
-            h += `<tr><td style="text-align:left">${txt}</td>
-            <td onclick="saveKat(${s.id},${i},'A',${s.q.split(';').length})"><span class="ceklis">${a[i]=='A'?'✓':''}</span></td>
-            <td onclick="saveKat(${s.id},${i},'B',${s.q.split(';').length})"><span class="ceklis">${a[i]=='B'?'✓':''}</span></td></tr>`;
-        });
-        h += `</table>`;
-    } else {
-        const typ = s.tp === 'MCMA' ? 'checkbox' : 'radio';
-        const curA = (ans[s.id] || "").split(',');
-        h += `<div class="option-wrapper">`;
-        s.opt.forEach(o => {
-            const sel = curA.includes(o.orig);
-            h += `<div class="opt-btn ${sel?'selected':''}" onclick="selectOpt(this, '${typ}', ${s.id}, '${s.tp}')">
-                <input type="${typ}" name="q_${s.id}" value="${o.orig}" ${sel?'checked':''}> <span><b>${o.orig}.</b> ${o.text}</span></div>`;
-        });
-        h += `</div>`;
-    }
+// Render Soal [cite: 33, 56, 77]
+function render() {
+    const s = qs[cur];
+    let h = `<div class="card">`;
+    if (s.stimulus) h += `<div class="stimulus">${s.stimulus}</div>`; // Abaikan jika kosong [cite: 56]
+    if (s.img_link && s.img_link !== "-") h += `<img src="${s.img_link}" style="width:100%; border-radius:10px; margin-bottom:15px;">`;
+    h += `<p><b>Soal ${cur+1}:</b> ${s.butir_soal}</p>`;
+    
+    ['a', 'b', 'c', 'd', 'e'].forEach(opt => {
+        const val = s[`opsi_${opt}`];
+        if (val && val !== "-") {
+            const isSel = ans[s.rowid] === opt;
+            h += `<button class="opt-btn ${isSel?'selected':''}" onclick="setAns('${s.rowid}', '${opt}')">${opt.toUpperCase()}. ${val}</button>`;
+        }
+    });
     id('display-soal').innerHTML = h + `</div>`;
     updateGrid();
-};
+}
 
-window.selectOpt = (el, typ, idS, tpS) => {
-    const inp = el.querySelector('input');
-    if(typ === 'radio') { document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected')); el.classList.add('selected'); inp.checked = true; }
-    else { inp.checked = !inp.checked; el.classList.toggle('selected'); }
-    const v = Array.from(document.querySelectorAll(`input[name="q_${idS}"]:checked`)).map(i => i.value);
-    ans[idS] = v.sort().join(','); saveSession(); updateGrid();
-    if((tpS === 'Sederhana' || tpS === 'Sederhana Berkelompok') && v.length > 0) setTimeout(() => move(1), 600);
-};
+function setAns(rid, opt) {
+    ans[rid] = opt; // Menggunakan rowid sebagai kunci [cite: 34, 78]
+    render();
+}
 
-window.saveKat = (idS, idx, val, tot) => {
-    let a = (ans[idS] || "").split(','); if(a.length !== tot) a = new Array(tot).fill("");
-    a[idx] = val; ans[idS] = a.join(','); saveSession(); render();
-    if(a.every(x => x !== "")) setTimeout(() => move(1), 600);
-};
+function updateGrid() {
+    id('nav-grid').innerHTML = qs.map((s, i) => `<div class="box ${ans[s.rowid]?'done':''} ${i===cur?'now':''}" onclick="cur=${i};render()">${i+1}</div>`).join('');
+    id('nav-buttons').innerHTML = `
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button class="btn" style="background:#666; color:white;" onclick="cur=Math.max(0, cur-1);render()">KEMBALI</button>
+            ${cur === qs.length - 1 ? `<button class="btn btn-blue" style="background:var(--success)" onclick="preFinish()">KIRIM JAWABAN</button>` : `<button class="btn btn-blue" onclick="cur=Math.min(qs.length-1, cur+1);render()">LANJUT</button>`}
+        </div>`;
+}
 
-const updateGrid = () => {
-    id('nav-grid').innerHTML = qs.map((s, i) => `<div class="box ${(ans[s.id] || "").length > 0?'done':''} ${i===cur?'now':''}" onclick="cur=${i};render();saveSession()">${i+1}</div>`).join('');
-    id('nav-buttons').innerHTML = `<div style="display:flex; gap:10px"><button class="btn btn-gray" onclick="move(-1)">KEMBALI</button>
-        ${cur === qs.length - 1 ? `<button class="btn btn-success" onclick="preFinish()">KIRIM</button>` : `<button class="btn btn-blue" onclick="move(1)">LANJUT</button>`}</div>`;
-};
+function preFinish() { if(confirm("Kirim seluruh jawaban?")) finish(); }
 
-window.move = (step) => { let n = cur + step; if(n >= 0 && n < qs.length) { cur = n; render(); saveSession(); } };
-window.preFinish = () => { if(confirm("Kirim jawaban?")) autoFinish(); };
+// Tahap 3: Finalisasi [cite: 35, 79, 80]
+async function finish() {
+    setLoader(true, "Mengunggah Hasil...");
+    clearInterval(tInt);
+    isLive = false;
+    const body = {
+        siswa: u, infoUjian: ex, jawabanSiswa: ans, fraud: fraud,
+        wkt_masuk: tIn, wkt_submit: new Date().toLocaleString('id-ID'),
+        wkt_digunakan: `${Math.floor((new Date() - new Date(tIn))/60000)} Menit`
+    };
+    try {
+        const r = await fetch(`${API}/submit`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+        setLoader(false);
+        // Pesan selesai sesuai pedoman [cite: 87]
+        id('p-quiz').innerHTML = `
+            <div class="container" style="text-align:center; padding-top:100px;">
+                <i class="fas fa-check-circle" style="font-size:80px; color:var(--success)"></i>
+                <h2>Proses Ujian Selesai</h2>
+                <p>Terima kasih telah mengikuti ujian dengan jujur.</p>
+                <p><b>Semoga mendapatkan hasil yang terbaik!</b></p>
+                <button class="btn btn-blue" style="width:200px; margin-top:20px;" onclick="location.reload()">KELUAR</button>
+            </div>`;
+    } catch (e) { setLoader(false); alert("Gagal mengirim jawaban."); }
+}
 
-const autoFinish = async () => {
-    clearInterval(tInt); isLive = false;
-    const body = { siswa: u, infoUjian: ex, jawabanSiswa: ans, fraud, wkt_masuk: tIn, wkt_submit: new Date().toLocaleString('id-ID'), wkt_digunakan: `${Math.floor((new Date() - new Date(tIn)) / 60000)} Menit` };
-    const res = await fetch(`${API_URL}/submit`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
-    if((await res.json()).success) { localStorage.removeItem('cbt_sniper_v2_final'); location.reload(); }
-};
-
-document.addEventListener("visibilitychange", () => { if (isLive && document.hidden) { fraud++; saveSession(); document.body.className = fraud >= 10 ? 'warn-r' : (fraud >= 5 ? 'warn-y' : ''); } });
-loadSession();
+// Fraud Detection Logic [cite: 19, 62, 63]
+document.addEventListener("visibilitychange", () => {
+    if (isLive && document.hidden) {
+        fraud++;
+        if (fraud >= 10) document.body.className = 'warn-r';
+        else if (fraud >= 5) document.body.className = 'warn-y';
+    }
+});
