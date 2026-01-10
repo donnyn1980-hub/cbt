@@ -28,14 +28,20 @@
         .option-item:hover { background: #f7f8f8; border-color: #bdc1c6; }
         .selected-opt { border-color: var(--primary) !important; background: #e8f0fe !important; font-weight: bold; color: var(--primary); }
         .selected-opt::after { content: '\f058'; font-family: 'Font Awesome 5 Free'; font-weight: 900; position: absolute; right: 20px; font-size: 20px; }
-        .img-soal { width: 100%; max-height: 400px; object-fit: contain; border-radius: 12px; margin-bottom: 25px; border: 1px solid #dadce0; background: #fff; padding: 10px; box-sizing: border-box; }
+        
+        /* CSS Gambar Lebih Kecil dan Tengah */
+        .img-soal { display: block; width: 100%; max-width: 300px; height: auto; margin: 0 auto 25px auto; border-radius: 8px; border: 1px solid #dadce0; background: #fff; padding: 5px; box-sizing: border-box; }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 20px; border-radius: 8px; overflow: hidden; box-shadow: 0 0 0 1px #dadce0; }
         th, td { border: 1px solid #dadce0; padding: 18px; text-align: center; }
         th { background: #f8f9fa; font-weight: 600; color: #202124; }
+        
+        /* Fitur Blink */
         .warn-y { animation: blink-yellow 1.5s infinite; }
         .warn-r { animation: blink-red 0.6s infinite; }
         @keyframes blink-yellow { 0%, 100% { background: #ffffff; } 50% { background: #fff3cd; } }
         @keyframes blink-red { 0%, 100% { background: #ffffff; } 50% { background: #f8d7da; } }
+
         .notif-bar { display: none; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; border: 1px solid transparent; }
         .notif-error { display: block; background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
         .notif-success { display: block; background: #d4edda; color: #155724; border-color: #c3e6cb; }
@@ -43,8 +49,11 @@
         .btn-blue { background: var(--primary); color: white; }
         .btn-gray { background: #fff; color: #5f6368; border: 1px solid #dadce0; }
         .btn:disabled { background: #dadce0 !important; color: #9aa0a6 !important; cursor: not-allowed; }
-        .loader-spin { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        
+        /* Animasi Pengiriman */
+        .loader-spin { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
         .footnote { text-align: center; color: #70757a; font-size: 14px; margin-top: 40px; padding-bottom: 40px; font-weight: 500; border-top: 1px solid #dadce0; padding-top: 20px; }
     </style>
 </head>
@@ -93,6 +102,7 @@
     <div id="timer">SISA WAKTU: --:--</div>
     <div class="container" style="padding:20px; max-width: 900px; margin: auto;">
         <div id="notif-quiz" class="notif-bar"></div>
+        
         <div id="quiz-content">
             <div class="grid" id="nav-grid"></div>
             <div id="display-soal"></div>
@@ -104,17 +114,20 @@
                 <button id="btn-finish" class="btn" style="background:var(--success); color:white; font-size: 18px;" onclick="submitJawaban()"><i class="fa fa-paper-plane"></i> SELESAI & KIRIM JAWABAN</button>
             </div>
         </div>
-        <div id="loading-screen" style="display:none; text-align:center; padding: 50px 0;">
+
+        <div id="loading-screen" style="display:none; text-align:center; padding: 60px 20px;">
             <div class="loader-spin"></div>
-            <h2 style="color: var(--primary);">Sedang Mengirim Jawaban...</h2>
-            <p>Mohon jangan menutup halaman atau menekan tombol kembali.</p>
+            <h2 style="color: var(--primary); margin-bottom: 10px;">Memproses Pengiriman...</h2>
+            <p>Sistem sedang menyimpan jawaban Anda ke database secara aman. Mohon tidak menutup jendela ini.</p>
         </div>
-        <div id="success-screen" style="display:none; text-align:center; padding: 50px 0;">
+
+        <div id="success-screen" style="display:none; text-align:center; padding: 60px 20px;">
             <i class="fa fa-check-circle" style="font-size: 80px; color: var(--success);"></i>
-            <h1 style="color: var(--success); margin-top: 20px;">UJIAN SELESAI</h1>
-            <p style="font-size: 18px;">Terima kasih, jawaban dan nilai Anda telah berhasil disimpan di server.</p>
-            <button class="btn btn-blue" style="max-width:300px; margin-top: 30px;" onclick="location.reload()">KELUAR KE MENU LOGIN</button>
+            <h1 style="color: #202124; margin-top: 25px;">BERHASIL TERKIRIM!</h1>
+            <p style="font-size: 18px; color: #5f6368;">Seluruh jawaban dan nilai Anda telah sukses disimpan. Anda diperbolehkan meninggalkan ruangan.</p>
+            <button class="btn btn-blue" style="max-width:300px; margin-top: 30px;" onclick="location.reload()">KEMBALI KE HALAMAN LOGIN</button>
         </div>
+
     </div>
     <div class="footnote">DEVELOPED BY DONNY NUGROHO © 2026</div>
 </div>
@@ -141,8 +154,8 @@
                 id('p-login').classList.remove('active'); id('p-info').classList.add('active');
                 id('txt-sapa').innerText = `Halo, ${u.nama}`;
                 id('txt-detail').innerText = `MAPEL: ${ex.mapel}\nKELAS: ${u.kelas}\nJENJANG: ${u.jenjang}\nGURU: ${ex.nama_guru}\nSOAL: ${ex.total} Butir\nDURASI: ${ex.durasi} Menit`;
-            } else { showNotif('notif-login', 'Data login salah!', 'error'); id('btn-login').disabled = false; }
-        } catch (e) { showNotif('notif-login', 'Gangguan server!', 'error'); id('btn-login').disabled = false; }
+            } else { showNotif('notif-login', 'NISN/Password/Token Salah!', 'error'); id('btn-login').disabled = false; }
+        } catch (e) { showNotif('notif-login', 'Gangguan Server!', 'error'); id('btn-login').disabled = false; }
     }
 
     async function start() {
@@ -178,7 +191,7 @@
                 const fId = imgUrl.match(/[-\w]{25,}/);
                 if(fId) imgUrl = `https://lh3.googleusercontent.com/u/0/d/${fId[0]}`;
             }
-            h += `<img src="${imgUrl}" class="img-soal" onerror="this.src='https://placehold.co/600x400?text=Gambar+Drive+Error'">`;
+            h += `<img src="${imgUrl}" class="img-soal" onerror="this.src='https://placehold.co/300x200?text=Gambar+Drive+Error'">`;
         }
         h += `<div style="font-size:20px; line-height:1.6; margin-bottom:25px;"><b>Soal ${cur+1}:</b><br>${s.q}</div>`;
         if(s.tp === 'Kategori') {
@@ -211,7 +224,7 @@
         const vals = Array.from(inputs).map(i => i.value);
         if(vals.length > 0) ans[id_soal] = vals.sort().join(','); else delete ans[id_soal];
         render();
-        if(tipe === 'Sederhana' && vals.length > 0) { setTimeout(() => { if(cur < qs.length - 1) move(1); }, 500); }
+        if(tipe === 'Sederhana' && vals.length > 0) { setTimeout(() => { if(cur < qs.length - 1) move(1); }, 400); }
     }
 
     window.saveKat = (id_soal, idx, val, total) => {
@@ -219,7 +232,7 @@
         if(a.length !== total) a = new Array(total).fill("");
         a[idx] = val; ans[id_soal] = a.join(',');
         updateGrid();
-        if(a.every(x => x !== "")) { setTimeout(() => { if(cur < qs.length - 1) move(1); }, 500); }
+        if(a.every(x => x !== "")) { setTimeout(() => { if(cur < qs.length - 1) move(1); }, 400); }
     }
 
     function updateGrid() {
@@ -279,16 +292,13 @@
                 id('loading-screen').style.display = 'none';
                 id('success-screen').style.display = 'block';
             } else {
-                id('loading-screen').style.display = 'none';
-                id('quiz-content').style.display = 'block';
-                id('btn-finish').disabled = false; isSubmitting = false;
-                showNotif('notif-quiz', 'Database menolak data. Coba lagi!', 'error');
+                throw new Error();
             }
         } catch(e) {
             id('loading-screen').style.display = 'none';
             id('quiz-content').style.display = 'block';
             id('btn-finish').disabled = false; isSubmitting = false;
-            showNotif('notif-quiz', 'Kesalahan jaringan!', 'error');
+            showNotif('notif-quiz', 'Gagal menyimpan! Coba klik kirim lagi.', 'error');
         }
     }
 </script>
