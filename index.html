@@ -2,58 +2,302 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CBT Sniper Pro - Final System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem CBT - Ujian Online</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body oncontextmenu="return false;" onselectstart="return false;">
-
+<body>
+    <!-- Loader Overlay -->
     <div id="loader" class="loader-overlay">
         <div class="loader-content">
-            <i class="fas fa-spinner fa-spin fa-3x"></i>
-            <p>Sinkronisasi Database...</p>
+            <div class="spinner"></div>
+            <p id="loader-text">Memuat sistem ujian...</p>
+            <div class="progress-bar">
+                <div class="progress"></div>
+            </div>
         </div>
     </div>
 
-    <section id="p-login" class="page active">
+    <!-- Panel Login -->
+    <div id="p-login" class="panel active">
         <div class="login-container">
-            <div class="card login-card">
-                <h2 style="text-align:center; color: var(--primary)">CBT LOGIN</h2>
-                <div class="input-group">
-                    <input type="text" id="nisn" placeholder="Masukkan NISN" autocomplete="off"> </div>
-                <div class="input-group">
-                    <input type="password" id="pass" placeholder="Masukkan Password"> </div>
-                <div class="input-group">
-                    <input type="text" id="token" placeholder="Masukkan Token Ujian"> </div>
-                <button class="btn btn-blue" onclick="login()">VERIFIKASI MASUK</button>
+            <div class="login-header">
+                <i class="fas fa-graduation-cap logo"></i>
+                <h1>Sistem Ujian CBT</h1>
+                <p class="subtitle">Computer Based Test</p>
             </div>
-        </div>
-    </section>
 
-    <section id="p-info" class="page">
-        <div class="container-narrow">
-            <div class="card">
-                <div id="info-render-area"></div> 
-                <button class="btn btn-blue" onclick="start()">MULAI UJIAN SEKARANG</button>
-            </div>
-        </div>
-    </section>
+            <div class="login-form">
+                <div class="input-group">
+                    <label for="nish"><i class="fas fa-id-card"></i> NISN</label>
+                    <input type="text" id="nish" placeholder="Masukkan NISN" maxlength="10">
+                </div>
 
-    <section id="p-quiz" class="page" style="padding:0">
-        <div id="timer">SISA WAKTU: --:--</div> <div class="quiz-wrapper">
-            <div class="grid" id="nav-grid"></div>
-            
-            <div id="display-soal"></div>
-            
-            <div class="nav-controls">
-                <button class="btn btn-gray" onclick="move(-1)">KEMBALI</button>
-                <button id="btn-next" class="btn btn-blue" onclick="move(1)">SELANJUTNYA</button>
+                <div class="input-group">
+                    <label for="password"><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" id="password" placeholder="Masukkan password">
+                    <button type="button" class="toggle-password" id="toggle-password">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+
+                <div class="input-group">
+                    <label for="token"><i class="fas fa-key"></i> Token Ujian</label>
+                    <input type="text" id="token" placeholder="Masukkan token ujian" maxlength="8">
+                </div>
+
+                <div id="captcha-container" class="captcha-container">
+                    <div class="captcha-display" id="captcha-display"></div>
+                    <button type="button" class="captcha-refresh" id="captcha-refresh">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                    <input type="text" id="captcha-input" placeholder="Masukkan kode di atas">
+                </div>
+
+                <div class="form-actions">
+                    <button id="btn-login" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Masuk Ujian
+                    </button>
+                    <div class="security-notice">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Sistem dipantau untuk mencegah kecurangan</span>
+                    </div>
+                </div>
+
+                <div id="login-error" class="error-message"></div>
             </div>
-            
-            <button id="btn-finish" class="btn btn-success" style="display:none; margin-top: 15px;" onclick="preFinish()">KIRIM SEMUA JAWABAN</button>
         </div>
-    </section>
+    </div>
+
+    <!-- Panel Info Ujian -->
+    <div id="p-info" class="panel">
+        <div class="info-container">
+            <div class="info-header">
+                <h2><i class="fas fa-info-circle"></i> Konfirmasi Ujian</h2>
+                <p id="countdown">Memulai dalam: <span id="countdown-timer">5</span> detik</p>
+            </div>
+
+            <div class="info-content">
+                <div class="info-card student-info">
+                    <div class="info-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div>
+                        <h3 id="student-name">Nama Siswa</h3>
+                        <p id="student-class">Kelas</p>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <i class="fas fa-book"></i>
+                        <div>
+                            <h4>Mata Pelajaran</h4>
+                            <p id="exam-subject">-</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <div>
+                            <h4>Pengampu</h4>
+                            <p id="exam-teacher">-</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-list-ol"></i>
+                        <div>
+                            <h4>Jumlah Soal</h4>
+                            <p id="exam-total">-</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <h4>Durasi</h4>
+                            <p id="exam-duration">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="warning-box">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <h4>Peraturan Ujian</h4>
+                        <ul>
+                            <li>Dilarang menutup atau merefresh browser</li>
+                            <li>Dilarang membuka aplikasi lain selama ujian</li>
+                            <li>Jawaban otomatis tersimpan setiap 30 detik</li>
+                            <li>Sistem akan mencatat kecurangan</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-actions">
+                <button id="btn-start-exam" class="btn btn-success">
+                    <i class="fas fa-play"></i> Mulai Ujian
+                </button>
+                <button id="btn-back-login" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Kembali
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel Ujian -->
+    <div id="p-quiz" class="panel">
+        <div class="quiz-container">
+            <!-- Header Ujian -->
+            <div class="quiz-header">
+                <div class="quiz-timer">
+                    <i class="fas fa-clock"></i>
+                    <span id="timer">00:00</span>
+                </div>
+                <div class="quiz-title">
+                    <h3 id="current-subject">Ujian</h3>
+                </div>
+                <div class="quiz-controls">
+                    <button id="btn-mark-review" class="btn-icon" title="Tandai untuk review">
+                        <i class="far fa-flag"></i>
+                    </button>
+                    <button id="btn-fullscreen" class="btn-icon" title="Mode layar penuh">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                    <div class="cheat-warning" id="cheat-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Pantauan: <span id="cheat-count">0</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Konten Utama -->
+            <div class="quiz-main">
+                <!-- Sidebar Navigasi Soal -->
+                <div class="quiz-sidebar">
+                    <h4>Navigasi Soal</h4>
+                    <div class="question-grid" id="question-grid">
+                        <!-- Grid nomor soal akan di-generate oleh JavaScript -->
+                    </div>
+                    <div class="sidebar-legend">
+                        <div class="legend-item">
+                            <div class="box now"></div>
+                            <span>Sedang dilihat</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="box answered"></div>
+                            <span>Terjawab</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="box marked"></div>
+                            <span>Ditandai</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="box unanswered"></div>
+                            <span>Belum dijawab</span>
+                        </div>
+                    </div>
+                    <div class="sidebar-stats">
+                        <p>Dijawab: <span id="answered-count">0</span>/<span id="total-count">0</span></p>
+                        <p>Ditandai: <span id="marked-count">0</span></p>
+                    </div>
+                </div>
+
+                <!-- Area Soal -->
+                <div class="question-area">
+                    <div class="question-header">
+                        <h4 id="question-number">Soal #1</h4>
+                        <div class="question-status" id="question-status">
+                            <span class="status-badge">Belum dijawab</span>
+                        </div>
+                    </div>
+
+                    <div class="question-content">
+                        <!-- Stimulus (jika ada) -->
+                        <div class="stimulus" id="stimulus">
+                            <p>Stimulus akan muncul di sini jika tersedia...</p>
+                        </div>
+
+                        <!-- Gambar (jika ada) -->
+                        <div class="question-image" id="question-image">
+                            <!-- Gambar akan dimuat di sini -->
+                        </div>
+
+                        <!-- Soal -->
+                        <div class="question-text" id="question-text">
+                            <p>Pertanyaan akan dimuat di sini...</p>
+                        </div>
+
+                        <!-- Pilihan Jawaban -->
+                        <div class="options" id="options">
+                            <!-- Opsi akan di-generate oleh JavaScript -->
+                        </div>
+                    </div>
+
+                    <div class="question-navigation">
+                        <button id="btn-prev" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Soal Sebelumnya
+                        </button>
+                        <button id="btn-next" class="btn btn-primary">
+                            Soal Berikutnya <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <button id="btn-submit" class="btn btn-danger">
+                            <i class="fas fa-paper-plane"></i> Kirim Jawaban
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Konfirmasi Submit -->
+    <div id="submit-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-paper-plane"></i> Konfirmasi Pengumpulan</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="submit-summary">
+                    <p>Apakah Anda yakin ingin mengumpulkan jawaban?</p>
+                    <div class="summary-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Total Soal:</span>
+                            <span class="stat-value" id="modal-total">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Terjawab:</span>
+                            <span class="stat-value" id="modal-answered">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Ditandai:</span>
+                            <span class="stat-value" id="modal-marked">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Belum dijawab:</span>
+                            <span class="stat-value" id="modal-unanswered">0</span>
+                        </div>
+                    </div>
+                    <div class="warning-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>Setelah dikirim, Anda tidak dapat mengubah jawaban!</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-confirm-submit" class="btn btn-danger">
+                    <i class="fas fa-check"></i> Ya, Kirim Sekarang
+                </button>
+                <button id="btn-cancel-submit" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Batal
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
 
     <script src="script.js"></script>
 </body>
