@@ -1,261 +1,172 @@
-/**
- * CORE CLIENT SCRIPT - CBT SNIPER PRO
- */
+let u = {}, ex = {}, qs = [], ans = {}, cur = 0, fraud = 0, tIn, tInt, isLive = false;
 
-// Global App State
-let STATE = {
-    user: {},
-    exam: {},
-    questions: [],
-    answers: {},
-    currentIndex: 0,
-    fraudCount: 0,
-    startTime: null,
-    timerId: null,
-    isExamLive: false
-};
+const id = (e) => document.getElementById(e);
+const toggleLoader = (v) => id('loader').style.display = v ? 'flex' : 'none';
 
-const BASE_URL = 'https://cbt.donnyn1980.workers.dev';
-
-// Utils
-const $ = (id) => document.getElementById(id);
-const toggleLoader = (show, text) => {
-    $('loader').style.display = show ? 'flex' : 'none';
-    if(text) $('loader-text').innerText = text;
-};
-
-// TAHAP 1: LOGIN
-async function handleLogin() {
-    const nisn = $('nisn').value.trim();
-    const pass = $('pass').value;
-    const token = $('token').value.trim();
-
-    if(!nisn || !pass || !token) return alert("Harap isi semua field login.");
-
-    toggleLoader(true, "Memvalidasi Kredensial...");
-
-    try {
-        const response = await fetch(`${BASE_URL}/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nisn, password: pass, token })
-        });
-        const data = await response.json();
-        toggleLoader(false);
-
-        if(data.success) {
-            STATE.user = data.siswa;
-            STATE.exam = data.infoUjian;
-            STATE.exam.totalSoal = data.totalSoal;
-            renderConfirmationPage();
-        } else {
-            alert(data.msg);
-        }
-    } catch (err) {
-        toggleLoader(false);
-        alert("Gagal terhubung ke Worker. Pastikan Worker aktif.");
-    }
-}
-
-function renderConfirmationPage() {
-    $('p-login').classList.remove('active');
-    $('p-info').classList.add('active');
-
-    $('info-render-area').innerHTML = `
-        <h2 style="color:var(--brand); border-bottom: 2px solid #eee; padding-bottom: 0.5rem;">Konfirmasi Ujian</h2>
-        <div style="font-size: 1.1rem; line-height: 1.8; margin-top: 1.5rem;">
-            Halo, <strong>${STATE.user.nama}</strong> (${STATE.user.kelas}), <br>
-            Anda akan mengerjakan Ujian dengan rincian sebagai berikut:
-            <ul style="list-style: none; padding: 0; margin-top: 1rem;">
-                <li><i class="fas fa-book"></i> Mata Pelajaran: <strong>${STATE.exam.mata_pelajaran}</strong></li>
-                <li><i class="fas fa-user-tie"></i> Guru Pengampu: <strong>${STATE.exam.nama_guru}</strong></li>
-                <li><i class="fas fa-list-ol"></i> Jumlah Soal: <strong>${STATE.exam.totalSoal} Butir</strong></li>
-                <li><i class="fas fa-clock"></i> Alokasi Waktu: <strong>${STATE.exam.durasi} Menit</strong></li>
-            </ul>
-        </div>
-    `;
-}
-
-// TAHAP 2: FETCH SOAL & START
-async function fetchSoalAndStart() {
-    toggleLoader(true, "Sinkronisasi Paket Soal...");
-    try {
-        const response = await fetch(`${BASE_URL}/get-soal?token=${STATE.exam.token}`);
-        STATE.questions = await response.json();
-        toggleLoader(false);
-
-        if(STATE.questions.length === 0) return alert("Soal tidak ditemukan untuk token ini.");
-        
-        initiateQuizMode();
-    } catch (err) {
-        toggleLoader(false);
-        alert("Gagal sinkronisasi soal.");
-    }
-}
-
-function initiateQuizMode() {
-    STATE.startTime = new Date().toISOString();
-    STATE.isExamLive = true;
+// Tahap 1: Login & Inisiasi [cite: 22, 66]
+async function login() {
+    const payload = { nisn: id('nisn').value, password: id('pass').value, token: id('token').value };
+    toggleLoader(true);
     
-    $('p-info').classList.remove('active');
-    $('p-quiz').classList.add('active');
+    try {
+        const r = await fetch('https://cbt.donnyn1980.workers.dev/login', { 
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload) 
+        });
+        const d = await r.json();
+        toggleLoader(false);
 
-    $('user-display-name').innerText = STATE.user.nama;
-    $('user-display-kelas').innerText = STATE.user.kelas;
-
-    startCountdown(parseInt(STATE.exam.durasi) * 60);
-    renderQuestion();
+        if(d.success) {
+            u = d.siswa; ex = d.infoUjian; ex.total = d.totalSoal;
+            id('p-login').classList.remove('active'); 
+            id('p-info').classList.add('active');
+            
+            // Render sesuai draf [cite: 52]
+            id('info-render-area').innerHTML = `
+                <h3>Konfirmasi Data Peserta</h3>
+                <p>Halo, <b>${u.nama}</b> (${u.kelas}), Anda akan mengerjakan Ujian dengan rincian sebagai berikut:</p>
+                <ul>
+                    <li>Mata Pelajaran: <b>${ex.mata_pelajaran}</b></li>
+                    <li>Guru Pengampu: <b>${ex.nama_guru}</b></li>
+                    <li>Jumlah Soal: <b>${ex.total} Butir</b></li>
+                    <li>Alokasi Waktu: <b>${ex.durasi} Menit</b></li>
+                </ul>
+            `;
+        } else alert("Akses Ditolak: " + d.msg);
+    } catch(e) { toggleLoader(false); alert("Error koneksi database!"); }
 }
 
-function startCountdown(seconds) {
-    let timeLeft = seconds;
-    STATE.timerId = setInterval(() => {
-        if(timeLeft <= 0) {
-            clearInterval(STATE.timerId);
-            autoSubmit();
-            return;
-        }
-        timeLeft--;
-        const h = Math.floor(timeLeft / 3600);
-        const m = Math.floor((timeLeft % 3600) / 60);
-        const s = timeLeft % 60;
-        $('timer').innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+// Tahap 2: Sinkronisasi Soal [cite: 28, 72]
+async function start() {
+    toggleLoader(true);
+    try {
+        const r = await fetch(`https://cbt.donnyn1980.workers.dev/get-soal?token=${ex.token}`);
+        qs = await r.json(); 
+        tIn = new Date(); 
+        isLive = true;
+        toggleLoader(false);
+
+        if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+        
+        id('p-info').classList.remove('active'); 
+        id('p-quiz').classList.add('active');
+        runTimer(ex.durasi * 60); // [cite: 32, 76]
+        render();
+    } catch(e) { toggleLoader(false); alert("Gagal sinkronisasi soal!"); }
+}
+
+// Deteksi Kecurangan 
+document.addEventListener("visibilitychange", () => {
+    if (isLive && document.hidden) {
+        fraud++;
+        if(fraud >= 10) document.body.className = 'warn-r';
+        else if(fraud >= 5) document.body.className = 'warn-y';
+    }
+});
+
+function runTimer(sec) {
+    tInt = setInterval(() => {
+        let m = Math.floor(sec/60), s = sec%60;
+        id('timer').innerText = `SISA WAKTU: ${m}:${s<10?'0':''}${s}`;
+        if(--sec < 0) { clearInterval(tInt); autoFinish(); }
     }, 1000);
 }
 
-// RENDER LOGIC
-function renderQuestion() {
-    const q = STATE.questions[STATE.currentIndex];
-    let html = `<div class="question-container">`;
-
-    if(q.stimulus && q.stimulus.trim() !== "") {
-        html += `<div class="stimulus-box">${q.stimulus}</div>`;
-    }
-
-    if(q.img_link && q.img_link !== "-" && q.img_link.trim() !== "") {
-        html += `<img src="${q.img_link}" style="max-width:100%; border-radius:10px; margin-bottom:1.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">`;
-    }
-
-    html += `<h2 style="margin-bottom: 2rem;">${STATE.currentIndex + 1}. ${q.butir_soal}</h2>`;
-
-    ['a','b','c','d','e'].forEach(char => {
-        const textOpsi = q[`opsi_${char}`];
-        if(textOpsi && textOpsi !== "-" && textOpsi.trim() !== "") {
-            const activeClass = STATE.answers[q.rowid] === char ? 'selected' : '';
-            html += `
-                <div class="option-btn ${activeClass}" onclick="handleSelectAnswer('${q.rowid}', '${char}')">
-                    <div class="opt-char">${char.toUpperCase()}</div>
-                    <div class="opt-text">${textOpsi}</div>
-                </div>
-            `;
-        }
-    });
-
-    html += `</div>`;
-    $('display-soal').innerHTML = html;
-    updateSidebarNav();
-}
-
-function handleSelectAnswer(rowid, char) {
-    STATE.answers[rowid] = char;
-    renderQuestion();
-}
-
-function updateSidebarNav() {
-    let gridHtml = '';
-    STATE.questions.forEach((q, idx) => {
-        const statusClass = STATE.answers[q.rowid] ? 'done' : '';
-        const currentClass = STATE.currentIndex === idx ? 'active-soal' : '';
-        gridHtml += `<div class="box-num ${statusClass} ${currentClass}" onclick="jumpTo(${idx})">${idx + 1}</div>`;
-    });
-    $('nav-grid').innerHTML = gridHtml;
-
-    $('btn-prev').disabled = STATE.currentIndex === 0;
+function render() {
+    const s = qs[cur];
+    let h = `<div class="card">`;
+    if(s.st && s.st !== "-") h += `<div class="stimulus">${s.st}</div>`; // [cite: 56]
+    if(s.img && s.img !== "-") h += `<img src="${s.img}" style="max-width:100%">`;
     
-    const isLast = STATE.currentIndex === STATE.questions.length - 1;
-    const nextBtn = $('btn-next');
-    if(isLast) {
-        nextBtn.innerText = "FINISH & SUBMIT";
-        nextBtn.classList.replace('btn-primary', 'btn-success');
-        nextBtn.onclick = confirmFinish;
+    h += `<p><b>No ${cur+1}:</b> ${s.q}</p>`;
+    
+    // Logika Tipe Soal: Sniper Logic
+    if(s.tp === 'Kategori') {
+        const baris = s.q.split(';');
+        h += `<table><tr><th>Kasus</th><th>${s.kat[0]}</th><th>${s.kat[1]}</th></tr>`;
+        baris.forEach((txt, i) => {
+            let curAnsArr = ans[s.id] ? ans[s.id].split(',') : new Array(baris.length).fill("");
+            const val = curAnsArr[i] || "";
+            h += `<tr><td>${txt}</td>
+            <td><input type="radio" name="k_${s.id}_${i}" value="A" ${val=='A'?'checked':''} onchange="saveKat(${s.id},${i},'A',${baris.length})"></td>
+            <td><input type="radio" name="k_${s.id}_${i}" value="B" ${val=='B'?'checked':''} onchange="saveKat(${s.id},${i},'B',${baris.length})"></td></tr>`;
+        });
+        h += `</table>`;
     } else {
-        nextBtn.innerText = "SOAL SELANJUTNYA";
-        nextBtn.classList.replace('btn-success', 'btn-primary');
-        nextBtn.onclick = goNext;
+        const typ = s.tp === 'MCMA' ? 'checkbox' : 'radio';
+        const curVal = ans[s.id] || "";
+        s.opt.forEach(o => {
+            const isC = curVal.split(',').includes(o.orig) ? 'checked' : '';
+            h += `<label class="option-item"><input type="${typ}" name="q_${s.id}" value="${o.orig}" ${isC} onchange="saveAns(${s.id},'${s.tp}')"> ${o.text}</label>`;
+        });
     }
+    id('display-soal').innerHTML = h + `</div>`;
+    updateGrid();
 }
 
-function jumpTo(idx) { STATE.currentIndex = idx; renderQuestion(); }
-function goNext() { if(STATE.currentIndex < STATE.questions.length -1) { STATE.currentIndex++; renderQuestion(); } }
-function goPrev() { if(STATE.currentIndex > 0) { STATE.currentIndex--; renderQuestion(); } }
-
-// TAHAP 3: SUBMIT
-function confirmFinish() {
-    if(confirm("Apakah Anda yakin ingin mengakhiri ujian? Jawaban tidak dapat diubah setelah ini.")) {
-        autoSubmit();
-    }
+window.saveAns = (id_soal, tipe) => {
+    const inputs = document.querySelectorAll(`input[name="q_${id_soal}"]:checked`);
+    const vals = Array.from(inputs).map(i => i.value);
+    if(vals.length > 0) ans[id_soal] = vals.sort().join(',');
+    else delete ans[id_soal];
+    updateGrid();
+    if(tipe === 'Sederhana' && vals.length > 0) setTimeout(() => { if(cur < qs.length - 1) move(1); }, 600);
 }
 
-async function autoSubmit() {
-    STATE.isExamLive = false;
-    clearInterval(STATE.timerId);
-    toggleLoader(true, "Mengirim Hasil ke Server...");
+window.saveKat = (id_soal, idx, val, total) => {
+    let a = (ans[id_soal] || "").split(',');
+    if(a.length !== total) a = new Array(total).fill("");
+    a[idx] = val;
+    ans[id_soal] = a.join(',');
+    updateGrid();
+}
 
-    const finishTime = new Date().toLocaleString('id-ID');
-    const usedTime = `${Math.floor((new Date() - new Date(STATE.startTime)) / 60000)} Menit`;
+function updateGrid() {
+    const g = id('nav-grid'); g.innerHTML = '';
+    let countDone = 0;
+    qs.forEach((s, i) => {
+        let cls = 'box';
+        if(ans[s.id]) { cls += ' done'; countDone++; } // [cite: 17, 60]
+        if(i === cur) cls += ' now'; // [cite: 18, 61]
+        g.innerHTML += `<div class="${cls}" onclick="cur=${i};render()">${i+1}</div>`;
+    });
+    id('btn-finish').style.display = (countDone === qs.length) ? 'block' : 'none';
+}
 
-    const dataPackage = {
-        siswa: STATE.user,
-        infoUjian: STATE.exam,
-        jawabanSiswa: STATE.answers,
-        fraud: STATE.fraudCount,
-        wkt_masuk: STATE.startTime,
-        wkt_submit: finishTime,
-        wkt_digunakan: usedTime
+window.move = (step) => { cur += step; if(cur<0) cur=0; if(cur>=qs.length) cur=qs.length-1; render(); }
+
+function preFinish() { if(confirm("Kirim jawaban sekarang?")) autoFinish(); }
+
+// Tahap 3: Finalisasi & Simpan [cite: 35, 79]
+async function autoFinish() {
+    clearInterval(tInt); isLive = false; toggleLoader(true);
+    let b = 0;
+    const sorted = [...qs].sort((x, y) => x.id - y.id);
+    const logAns = sorted.map(q => {
+        const userA = ans[q.id] || "-";
+        if(userA.replace(/\s/g,'') === q.key.replace(/\s/g,'')) b++;
+        return userA;
+    }).join('|');
+
+    const tOut = new Date();
+    const body = {
+        nisn: u.nisn, nama: u.nama, nama_guru: ex.nama_guru, mapel: ex.mata_pelajaran, 
+        kelas: u.kelas, jenjang: u.jenjang, nilai: (b/qs.length)*100, // [cite: 85]
+        jml_curang: fraud, jml_benar: b, jml_salah: qs.length - b,
+        wkt_masuk: tIn.toLocaleString(), wkt_submit: tOut.toLocaleString(),
+        wkt_digunakan: `${Math.floor((tOut-tIn)/60000)} Menit`, jawaban: logAns
     };
 
     try {
-        const response = await fetch(`${BASE_URL}/submit`, {
+        await fetch('https://cbt.donnyn1980.workers.dev/submit', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dataPackage)
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body)
         });
-        const result = await response.json();
         toggleLoader(false);
-
-        if(result.success) {
-            renderFinalPage();
-        } else {
-            alert("Kesalahan Server: " + result.error);
-        }
-    } catch (err) {
-        toggleLoader(false);
-        alert("Gagal mengirim jawaban. Coba klik kirim ulang.");
-    }
+        // Pesan penutup sesuai draf [cite: 87]
+        alert(`Ujian Selesai! Terimakasih ${u.nama}, semoga mendapatkan hasil yang terbaik.`);
+        location.reload();
+    } catch(e) { toggleLoader(false); alert("Gagal mengirim data!"); }
 }
-
-function renderFinalPage() {
-    $('p-quiz').innerHTML = `
-        <div style="display:flex; justify-content:center; align-items:center; min-height:80vh; text-align:center;">
-            <div class="card" style="padding: 4rem; max-width: 600px; border-radius: 20px;">
-                <i class="fas fa-check-circle" style="font-size: 6rem; color: var(--success); margin-bottom: 2rem;"></i>
-                <h1 style="color: var(--brand);">Proses Ujian Selesai</h1>
-                <p style="font-size: 1.2rem; color: #555;">Terima kasih telah mengikuti ujian dengan jujur.</p>
-                <p style="font-size: 1.4rem; font-weight: bold; margin-top: 2rem;">Semoga mendapatkan hasil yang terbaik!</p>
-                <button class="btn-main" style="margin-top: 3rem; width: 250px;" onclick="location.reload()">KEMBALI KE BERANDA</button>
-            </div>
-        </div>
-    `;
-}
-
-// SECURITY LOGIC (FRAUD DETECTION)
-document.addEventListener("visibilitychange", () => {
-    if (STATE.isExamLive && document.hidden) {
-        STATE.fraudCount++;
-        if (STATE.fraudCount >= 10) {
-            document.body.className = 'warn-r';
-        } else if (STATE.fraudCount >= 5) {
-            document.body.className = 'warn-y';
-        }
-    }
-});
