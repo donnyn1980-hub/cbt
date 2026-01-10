@@ -3,33 +3,29 @@ const API_URL = 'https://cbt.donnyn1980.workers.dev';
 
 const id = (e) => document.getElementById(e);
 
-// Keamanan: Disable Inspect Element
-function disableInspect(e) {
-    if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || (e.ctrlKey && e.keyCode == 85)) {
-        return false;
-    }
-}
+// Keamanan: Disable Inspect Element (F12, Ctrl+Shift+I, Ctrl+U)
+document.onkeydown = (e) => {
+    if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || (e.ctrlKey && e.keyCode == 85)) return false;
+};
 
 const showLoader = (show, text = "Harap Tunggu...") => {
     id('loader').style.display = show ? 'flex' : 'none';
     id('loader-text').innerText = text;
 };
 
-// Image Converter (Versi Mobile-Friendly)
 const driveConvert = (url) => {
     if (!url || url === "-" || url.trim() === "") return null;
     if (url.includes("drive.google.com")) {
         let fileId = "";
-        const parts = url.split("/");
-        if (url.includes("/file/d/")) fileId = parts[parts.indexOf("d") + 1];
-        else if (url.includes("id=")) fileId = url.split("id=")[1].split("&")[0];
-        // Jalur LH3 jauh lebih stabil di Mobile Browser daripada uc?id
-        if (fileId) return `https://lh3.googleusercontent.com/d/${fileId}`;
+        try {
+            if (url.includes("/file/d/")) fileId = url.split("/file/d/")[1].split("/")[0].split("?")[0];
+            else if (url.includes("id=")) fileId = url.split("id=")[1].split("&")[0];
+            if (fileId) return `https://lh3.googleusercontent.com/d/${fileId}`;
+        } catch (e) { console.error("Drive Convert Error"); }
     }
     return url;
 };
 
-// Sesi Manajemen (LocalStorage)
 const saveSession = () => {
     const session = { ans, fraud, cur, tIn, u, ex, qs, isLive };
     localStorage.setItem('cbt_session', JSON.stringify(session));
@@ -45,16 +41,17 @@ const loadSession = () => {
             id('p-login').classList.remove('active');
             id('p-quiz').classList.add('active');
             render();
-            // Hitung sisa waktu dari tIn + durasi
             const now = new Date().getTime();
             const startT = new Date(tIn).getTime();
-            const limit = ex.durasi * 60;
             const elapsed = Math.floor((now - startT) / 1000);
-            runTimer(limit - elapsed);
+            runTimer((ex.durasi * 60) - elapsed);
+        } else {
+            initApp();
+            id('p-login').classList.add('active');
         }
     } else {
-        id('p-login').classList.add('active');
         initApp();
+        id('p-login').classList.add('active');
     }
 };
 
@@ -62,22 +59,35 @@ const initApp = () => {
     id('login-root').innerHTML = `
         <div class="card" style="max-width:400px; margin: 40px auto;">
             <h2 style="text-align:center; color: var(--primary)">CBT LOGIN</h2>
-            <input type="text" id="nisn" placeholder="NISN" style="margin-bottom:15px">
+            <div class="input-group"><input type="text" id="nisn" placeholder="NISN"></div>
             <div class="input-group">
                 <input type="password" id="pass" placeholder="Password">
                 <i class="fa fa-eye toggle-pass" onclick="togglePass()"></i>
             </div>
-            <input type="text" id="token" placeholder="Token" style="margin-top:15px">
+            <div class="input-group"><input type="text" id="token" placeholder="Token Ujian"></div>
             <button class="btn btn-blue" onclick="login()">MASUK</button>
         </div>
     `;
 };
 
+window.togglePass = () => {
+    const p = id('pass');
+    p.type = p.type === 'password' ? 'text' : 'password';
+};
+
 window.login = async () => {
+    const nisnVal = id('nisn').value;
+    const passVal = id('pass').value;
+    const tokVal = id('token').value;
+
+    if(!nisnVal || !passVal || !tokVal) return alert("Lengkapi data login!");
+
     showLoader(true, "Memverifikasi...");
-    const payload = { nisn: id('nisn').value, password: id('pass').value, token: id('token').value };
     try {
-        const r = await fetch(`${API_URL}/login`, { method: 'POST', body: JSON.stringify(payload) });
+        const r = await fetch(`${API_URL}/login`, { 
+            method: 'POST', 
+            body: JSON.stringify({ nisn: nisnVal, password: passVal, token: tokVal }) 
+        });
         const d = await r.json();
         if(d.success) {
             u = d.siswa; ex = d.infoUjian; ex.total = d.totalSoal;
@@ -86,21 +96,25 @@ window.login = async () => {
                 <div class="card">
                     <h3>Halo, ${u.nama}</h3>
                     <p>Mapel: ${ex.mapel} | Durasi: ${ex.durasi} Menit</p>
-                    <button class="btn btn-blue" onclick="start()">MULAI</button>
+                    <button class="btn btn-blue" onclick="start()">MULAI UJIAN</button>
                 </div>
             `;
-        } else alert("Akses Ditolak!");
-    } catch(e) { alert("Error!"); }
+        } else {
+            alert("Akses Ditolak! NISN, Password, atau Token salah.");
+        }
+    } catch(e) { alert("Kesalahan koneksi server!"); }
     showLoader(false);
 };
 
 window.start = async () => {
     showLoader(true, "Memuat Soal...");
-    const r = await fetch(`${API_URL}/get-soal?token=${ex.token}`);
-    qs = await r.json(); tIn = new Date(); isLive = true;
-    id('p-info').classList.remove('active'); id('p-quiz').classList.add('active');
-    saveSession();
-    runTimer(ex.durasi * 60); render();
+    try {
+        const r = await fetch(`${API_URL}/get-soal?token=${ex.token}`);
+        qs = await r.json(); tIn = new Date(); isLive = true;
+        id('p-info').classList.remove('active'); id('p-quiz').classList.add('active');
+        saveSession();
+        runTimer(ex.durasi * 60); render();
+    } catch(e) { alert("Gagal memuat soal!"); }
     showLoader(false);
 };
 
@@ -120,11 +134,11 @@ const render = () => {
     let h = `<div class="card">
         ${s.st ? `<div class="stimulus">${s.st}</div>` : ''}
         ${imgUrl ? `<img src="${imgUrl}" class="soal-img" onerror="this.src='https://placehold.co/400x200?text=Gambar+Drive+Dibatasi'">` : ''}
-        <p><b>${cur+1}.</b> ${s.q}</p>`;
+        <p><b>Soal ${cur+1}:</b> ${s.q}</p>`;
 
     if(s.tp === 'Kategori') {
         const baris = s.q.split(';');
-        h += `<table><tr><th>Item</th><th>${s.kat[0]}</th><th>${s.kat[1]}</th></tr>`;
+        h += `<table><tr><th>Kategori</th><th>${s.kat[0]}</th><th>${s.kat[1]}</th></tr>`;
         baris.forEach((txt, i) => {
             let a = (ans[s.id] || "").split(',');
             if(a.length !== baris.length) a = new Array(baris.length).fill("");
@@ -135,8 +149,9 @@ const render = () => {
         h += `</table>`;
     } else {
         const typ = s.tp === 'MCMA' ? 'checkbox' : 'radio';
+        const curV = ans[s.id] || "";
         s.opt.forEach(o => {
-            const isC = (ans[s.id] || "").split(',').includes(o.orig) ? 'checked' : '';
+            const isC = curV.split(',').includes(o.orig) ? 'checked' : '';
             h += `<label class="option-item"><input type="${typ}" name="q_${s.id}" value="${o.orig}" ${isC} onchange="saveAns(${s.id},'${s.tp}')"> ${o.text}</label>`;
         });
     }
@@ -185,10 +200,10 @@ window.move = (step) => {
     if(n >= 0 && n < qs.length) { cur = n; render(); saveSession(); }
 };
 
-window.preFinish = () => { if(confirm("Kirim jawaban?")) autoFinish(); };
+window.preFinish = () => { if(confirm("Yakin ingin mengirim jawaban sekarang?")) autoFinish(); };
 
 const autoFinish = async () => {
-    showLoader(true, "Mengirim...");
+    showLoader(true, "Mengirim Nilai...");
     let b = 0;
     const sorted = [...qs].sort((x, y) => x.id - y.id);
     const logAns = sorted.map(q => {
@@ -204,8 +219,11 @@ const autoFinish = async () => {
         wkt_digunakan: `${Math.floor((new Date()-new Date(tIn))/60000)} Menit`, jawaban: logAns
     };
 
-    const res = await fetch(`${API_URL}/submit`, { method: 'POST', body: JSON.stringify(body) });
-    if(res.ok) { localStorage.clear(); location.reload(); }
+    try {
+        const res = await fetch(`${API_URL}/submit`, { method: 'POST', body: JSON.stringify(body) });
+        if(res.ok) { localStorage.clear(); location.reload(); }
+        else { alert("Gagal menyimpan nilai!"); }
+    } catch(e) { alert("Error saat kirim!"); }
     showLoader(false);
 };
 
