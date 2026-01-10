@@ -1,12 +1,12 @@
 class CBTSystem {
     constructor() {
-        // State management - SESUAI DATABASE ANDA
+        // State management
         this.currentPanel = 'p-login';
-        this.userData = null;        // {nisn, nama, kelas, jenjang}
-        this.examData = null;        // {token, mata_pelajaran, nama_guru, durasi}
-        this.questions = [];         // Array dari bank_soal
+        this.userData = null;
+        this.examData = null;
+        this.questions = [];
         this.currentQuestionIndex = 0;
-        this.userAnswers = {};       // {rowid: jawaban}
+        this.userAnswers = {};
         this.markedQuestions = new Set();
         this.cheatCount = 0;
         this.examStarted = false;
@@ -16,7 +16,7 @@ class CBTSystem {
         this.timerInterval = null;
         this.timeLeft = 0;
         this.isFullscreen = false;
-        this.correctAnswers = {};    // Simpan kunci jawaban untuk koreksi
+        this.correctAnswers = {};
         
         // DOM Elements
         this.elements = {};
@@ -47,7 +47,7 @@ class CBTSystem {
         this.elements.loaderText = document.getElementById('loader-text');
         this.elements.progressBar = document.querySelector('.progress');
         
-        // Login elements - NISN BUKAN NISH
+        // Login elements
         this.elements.login = {
             nisn: document.getElementById('nisn'),
             password: document.getElementById('password'),
@@ -206,18 +206,28 @@ class CBTSystem {
     async simulateLoading() {
         this.showLoader('Memuat sistem...');
         
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += 10;
-            this.elements.progressBar.style.width = `${progress}%`;
+        return new Promise((resolve) => {
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 10;
+                this.elements.progressBar.style.width = `${progress}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        this.hideLoader();
+                        resolve();
+                    }, 500);
+                }
+            }, 200);
             
-            if (progress >= 100) {
+            // Fallback timeout (maks 5 detik)
+            setTimeout(() => {
                 clearInterval(interval);
-                setTimeout(() => {
-                    this.hideLoader();
-                }, 500);
-            }
-        }, 200);
+                this.hideLoader();
+                resolve();
+            }, 5000);
+        });
     }
     
     showLoader(text = 'Memuat...') {
@@ -246,20 +256,15 @@ class CBTSystem {
     }
     
     async handleLogin() {
-    const nisn = this.elements.login.nisn.value.trim();
-    const password = this.elements.login.password.value.trim();
-    const token = this.elements.login.token.value.trim(); // Biarkan apa adanya
-    
-    // HAPUS validasi token ini:
-    // ❌ SALAH: if (!/^[A-Z0-9]{6,8}$/.test(token)) { ... }
-    
-    // ✅ BENAR: Tidak perlu validasi format token!
-    
-    // Hanya validasi wajib diisi:
-    if (!nisn || !password || !token) {
-        this.showError('Semua field harus diisi');
-        return;
-    }
+        const nisn = this.elements.login.nisn.value.trim();
+        const password = this.elements.login.password.value.trim();
+        const token = this.elements.login.token.value.trim();
+        
+        // Validasi input
+        if (!nisn || !password || !token) {
+            this.showError('Semua field harus diisi');
+            return;
+        }
         
         // Validasi NISN: 10 digit angka
         if (!/^\d{10}$/.test(nisn)) {
@@ -267,11 +272,7 @@ class CBTSystem {
             return;
         }
         
-        // Validasi Token: 6-8 karakter alfanumerik
-        if (!/^[A-Z0-9]{6,8}$/.test(token)) {
-            this.showError('Token harus 6-8 karakter (huruf/angka)');
-            return;
-        }
+        // Token TIDAK DIVALIDASI formatnya - diterima apa adanya
         
         if (!this.validateCaptcha()) {
             this.showError('Kode CAPTCHA salah');
@@ -317,62 +318,55 @@ class CBTSystem {
     }
     
     async mockLoginAPI(nisn, password, token) {
-    const mockUsers = {
-        '1234567890': { 
-            nisn: '1234567890',
-            password: 'password123',
-            nama: 'Budi Santoso',
-            kelas: 'XII IPA 1',
-            jenjang: 'xii'
-        }
-    };
-    
-    // Token bisa berapa saja, contoh:
-    const mockExams = {
-        'ABC123': { // 6 karakter
-            token: 'ABC123',
-            status: '1',
-            mata_pelajaran: 'Matematika',
-            nama_guru: 'Dr. Ahmad',
-            durasi: 120
-        },
-        'Sos1': { // 4 karakter (sesuai gambar Anda)
-            token: 'Sos1',
-            status: '1',
-            mata_pelajaran: 'Sosiologi',
-            nama_guru: 'Bu Ani',
-            durasi: 90
-        },
-        'H646JV': { // 6 karakter (sesuai gambar Anda)
-            token: 'H646JV',
-            status: '1',
-            mata_pelajaran: 'Sejarah',
-            nama_guru: 'Pak Budi',
-            durasi: 60
-        },
-        'X': { // Bahkan 1 karakter pun bisa
-            token: 'X',
-            status: '1',
-            mata_pelajaran: 'Testing',
-            nama_guru: 'Admin',
-            durasi: 10
-        },
-        'TOKENPANJANGBANGET123': { // 20 karakter
-            token: 'TOKENPANJANGBANGET123',
-            status: '1',
-            mata_pelajaran: 'Ekstra',
-            nama_guru: 'Super Guru',
-            durasi: 180
-        }
-    };
+        // Simulasi delay network
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Mock data untuk demo - SESUAI STRUKTUR DATABASE
+        const mockUsers = {
+            '1234567890': { 
+                nisn: '1234567890',
+                password: 'password123',
+                nama: 'Budi Santoso',
+                kelas: 'XII IPA 1',
+                jenjang: 'xii'
+            },
+            '0987654321': {
+                nisn: '0987654321',
+                password: 'test123',
+                nama: 'Siti Aminah',
+                kelas: 'XI IPS 2',
+                jenjang: 'xi'
+            },
+            '1122334455': {
+                nisn: '1122334455',
+                password: 'demo123',
+                nama: 'Ahmad Fauzi',
+                kelas: 'X IPA 3',
+                jenjang: 'x'
+            }
+        };
         
         const mockExams = {
             'ABC123': {
                 token: 'ABC123',
-                status: '1',                    // Status aktif
+                status: '1',
                 mata_pelajaran: 'Matematika Peminatan',
                 nama_guru: 'Dr. Ahmad Wijaya, M.Pd',
-                durasi: 120                     // Menit
+                durasi: 120
+            },
+            'Sos1': {
+                token: 'Sos1',
+                status: '1',
+                mata_pelajaran: 'Sosiologi',
+                nama_guru: 'Dra. Ani Susanti',
+                durasi: 90
+            },
+            'H646JV': {
+                token: 'H646JV',
+                status: '1',
+                mata_pelajaran: 'Sejarah Indonesia',
+                nama_guru: 'Prof. Bambang S.T., M.Hum',
+                durasi: 60
             },
             'DEF456': {
                 token: 'DEF456',
@@ -395,7 +389,7 @@ class CBTSystem {
         }
         
         if (!exam) {
-            return { success: false, message: 'Token ujian tidak valid' };
+            return { success: false, message: 'Token ujian tidak valid atau ujian tidak aktif' };
         }
         
         if (exam.status !== '1') {
@@ -428,17 +422,17 @@ class CBTSystem {
             const hasImage = i % 7 === 0;
             
             questions.push({
-                rowid: i,                           // ID unik sesuai bank_soal
-                No: i,                              // Urutan soal
+                rowid: i,
+                No: i,
                 stimulus: hasStimulus ? `Stimulus untuk soal nomor ${i}:<br><br>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.` : '',
                 butir_soal: `Soal nomor ${i}: Berapakah hasil dari ${i} × ${i} jika ${i} adalah bilangan bulat positif?`,
-                opsi_a: `${i * i}`,                 // Jawaban A
-                opsi_b: `${i * i + 1}`,             // Jawaban B
-                opsi_c: `${i * i - 1}`,             // Jawaban C
-                opsi_d: `${i + i}`,                 // Jawaban D
-                opsi_e: 'Tidak ada jawaban benar',  // Jawaban E
+                opsi_a: `${i * i}`,
+                opsi_b: `${i * i + 1}`,
+                opsi_c: `${i * i - 1}`,
+                opsi_d: `${i + i}`,
+                opsi_e: 'Tidak ada jawaban benar',
                 img_link: hasImage ? `https://picsum.photos/400/200?random=${i}` : '',
-                kunci_jawaban: 'A'                  // Kunci jawaban
+                kunci_jawaban: 'A'
             });
         }
         
@@ -474,7 +468,7 @@ class CBTSystem {
             clearInterval(this.countdownInterval);
         }
         
-        this.timeLeft = this.examData.durasi * 60; // Convert to seconds
+        this.timeLeft = this.examData.durasi * 60;
         this.examStarted = true;
         this.userAnswers = {};
         this.markedQuestions.clear();
@@ -691,9 +685,9 @@ class CBTSystem {
             
             // Warning colors
             const timerElement = this.elements.quiz.timer;
-            if (this.timeLeft <= 300) { // 5 minutes left
+            if (this.timeLeft <= 300) {
                 timerElement.style.color = '#f56565';
-            } else if (this.timeLeft <= 600) { // 10 minutes left
+            } else if (this.timeLeft <= 600) {
                 timerElement.style.color = '#f6ad55';
             }
         }, 1000);
@@ -709,7 +703,7 @@ class CBTSystem {
     startAutoSave() {
         this.autoSaveInterval = setInterval(() => {
             this.autoSaveAnswers();
-        }, 30000); // Every 30 seconds
+        }, 30000);
     }
     
     autoSaveAnswers() {
@@ -821,8 +815,6 @@ class CBTSystem {
         
         // Log cheat attempt
         console.log(`[CHEAT] ${reason}. Count: ${this.cheatCount}`);
-        
-        // In real system, send to server: INSERT INTO cheat_logs (nisn, token, reason)
     }
     
     toggleFullscreen() {
@@ -940,4 +932,3 @@ class CBTSystem {
 document.addEventListener('DOMContentLoaded', () => {
     window.cbtSystem = new CBTSystem();
 });
-
