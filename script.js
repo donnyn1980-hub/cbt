@@ -3,17 +3,16 @@ const API_URL = 'https://cbt.donnyn1980.workers.dev';
 
 const id = (e) => document.getElementById(e);
 
-// Keamanan Tambahan
 document.onkeydown = (e) => {
     if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || (e.ctrlKey && e.keyCode == 85)) return false;
 };
 
 const driveConvert = (url) => {
     if (!url || url === "-" || url.trim() === "") return null;
-    let fileId = "";
-    if (url.includes("/file/d/")) fileId = url.split("/file/d/")[1].split("/")[0];
-    else if (url.includes("id=")) fileId = url.split("id=")[1].split("&")[0];
-    return fileId ? `https://lh3.googleusercontent.com/u/0/d/${fileId}` : url;
+    let fId = "";
+    if (url.includes("/file/d/")) fId = url.split("/file/d/")[1].split("/")[0];
+    else if (url.includes("id=")) fId = url.split("id=")[1].split("&")[0];
+    return fId ? `https://lh3.googleusercontent.com/d/${fId}` : url;
 };
 
 const saveSession = () => {
@@ -23,13 +22,10 @@ const saveSession = () => {
 const loadSession = () => {
     const data = localStorage.getItem('cbt_session');
     if (data) {
-        const s = JSON.parse(data);
-        Object.assign(window, s);
+        Object.assign(window, JSON.parse(data));
         if (isLive) {
             id('p-login').classList.remove('active'); id('p-quiz').classList.add('active');
-            render();
-            const elapsed = Math.floor((new Date().getTime() - new Date(tIn).getTime()) / 1000);
-            runTimer((ex.durasi * 60) - elapsed);
+            render(); runTimer((ex.durasi * 60) - Math.floor((new Date()-new Date(tIn))/1000));
         } else { initApp(); id('p-login').classList.add('active'); }
     } else { initApp(); id('p-login').classList.add('active'); }
 };
@@ -37,53 +33,42 @@ const loadSession = () => {
 const initApp = () => {
     id('login-root').innerHTML = `
         <div class="card" style="max-width:400px; margin: 40px auto;">
-            <h2 style="text-align:center; color: var(--primary); margin-bottom: 25px;">CBT LOGIN</h2>
-            <div class="input-group">
-                <input type="text" id="nisn" placeholder="NISN">
-            </div>
-            <div class="input-group">
-                <input type="password" id="pass" placeholder="Password">
-                <i class="fa fa-eye toggle-pass" onclick="togglePass()"></i>
-            </div>
-            <div class="input-group">
-                <input type="text" id="token" placeholder="Token Ujian">
-            </div>
+            <h2 style="text-align:center; color: var(--primary)">CBT LOGIN</h2>
+            <div class="input-group"><input type="text" id="nisn" placeholder="NISN"></div>
+            <div class="input-group"><input type="password" id="pass" placeholder="Password"><i class="fa fa-eye toggle-pass" onclick="togglePass()"></i></div>
+            <div class="input-group"><input type="text" id="token" placeholder="Token Ujian"></div>
             <button class="btn btn-blue" onclick="login()">MASUK</button>
         </div>`;
 };
 
-window.togglePass = () => {
-    const p = id('pass');
-    p.type = p.type === 'password' ? 'text' : 'password';
-};
-
 window.login = async () => {
     const n = id('nisn').value, p = id('pass').value, t = id('token').value;
-    if(!n || !p || !t) return alert("Lengkapi data!");
-    
-    try {
-        const r = await fetch(`${API_URL}/login`, { method: 'POST', body: JSON.stringify({ nisn: n, password: p, token: t }) });
-        const d = await r.json();
-        if(d.success) {
-            u = d.siswa; ex = d.infoUjian; ex.total = d.totalSoal;
-            id('p-login').classList.remove('active'); id('p-info').classList.add('active');
-            id('info-root').innerHTML = `
-                <div class="card">
-                    <h2 style="color:var(--primary); margin-top:0">Selamat Datang, ${u.nama} (${u.kelas})</h2>
-                    <p>Anda akan mengerjakan Ujian dengan rincian sebagai berikut :</p>
-                    <div style="background:#e7f1ff; padding:20px; border-radius:12px; line-height: 1.1; margin-bottom:20px">
-                        <p><b>Mata Pelajaran:</b> ${ex.mapel}</p>
-                        <p><b>Guru Pengampu:</b> ${ex.nama_guru}</p>
-                        <p><b>Durasi:</b> ${ex.durasi} Menit</p>
-                        <p><b>Jumlah Soal:</b> ${ex.total}</p>
-                    </div>
-                    <div style="color:var(--danger); font-size:14px; margin-bottom:20px">
-                        <p><b>TATA TERTIB:</b> Pindah tab atau minimize akan dicatat sebagai pelanggaran!</p>
-                    </div>
-                    <button class="btn btn-blue" onclick="start()">SAYA MENGERTI & MULAI</button>
-                </div>`;
-        } else alert("Login Gagal!");
-    } catch(e) { alert("Server bermasalah!"); }
+    const r = await fetch(`${API_URL}/login`, { method: 'POST', body: JSON.stringify({ nisn: n, password: p, token: t }) });
+    const d = await r.json();
+    if(d.success) {
+        u = d.siswa; ex = d.infoUjian; ex.total = d.totalSoal;
+        id('p-login').classList.remove('active'); id('p-info').classList.add('active');
+        id('info-root').innerHTML = `
+            <div class="card">
+                <h2 style="color:var(--primary); margin-top:0">Selamat Datang, ${u.nama} (${u.kelas})</h2>
+                <p>Anda akan mengerjakan Ujian dengan rincian sebagai berikut :</p>
+                <div style="background:#e7f1ff; padding:15px; border-radius:8px; line-height: 1.2; margin-bottom:20px">
+                    <p style="margin:5px 0"><b>Mata Pelajaran:</b> ${ex.mapel}</p>
+                    <p style="margin:5px 0"><b>Guru Pengampu:</b> ${ex.nama_guru}</p>
+                    <p style="margin:5px 0"><b>Durasi:</b> ${ex.durasi} Menit</p>
+                    <p style="margin:5px 0"><b>Jumlah Soal:</b> ${ex.total}</p>
+                </div>
+                <div style="color:var(--danger); font-size:14px; margin-bottom:20px">
+                    <p><b>PERINGATAN TATA TERTIB:</b></p>
+                    <ul style="padding-left:20px; line-height:1.3">
+                        <li>Jangan berpindah tab atau meminimalkan browser.</li>
+                        <li>Setiap pelanggaran (pindah tab) akan dicatat oleh sistem.</li>
+                        <li>Jika melanggar lebih dari batas yang ditentukan, ujian akan dihentikan otomatis.</li>
+                    </ul>
+                </div>
+                <button class="btn btn-blue" onclick="start()">SAYA MENGERTI & MULAI</button>
+            </div>`;
+    } else alert("Login Gagal!");
 };
 
 window.start = async () => {
@@ -96,8 +81,7 @@ window.start = async () => {
 const runTimer = (sec) => {
     tInt = setInterval(() => {
         if (sec <= 0) { clearInterval(tInt); autoFinish(); }
-        let m = Math.floor(sec/60), s = sec%60;
-        id('timer').innerText = `SISA WAKTU: ${m}:${s<10?'0':''}${s}`;
+        id('timer').innerText = `SISA WAKTU: ${Math.floor(sec/60)}:${sec%60<10?'0':''}${sec%60}`;
         sec--;
     }, 1000);
 };
@@ -106,7 +90,7 @@ const render = () => {
     const s = qs[cur], imgUrl = driveConvert(s.img);
     let h = `<div class="card">
         ${s.st ? `<div class="stimulus">${s.st}</div>` : ''}
-        ${imgUrl ? `<img src="${imgUrl}" class="soal-img" onerror="this.src='https://placehold.co/400x200?text=Gambar+Gagal+Dimuat'">` : ''}
+        ${imgUrl ? `<img src="${imgUrl}" class="soal-img">` : ''}
         <p style="font-size:18px"><b>Soal ${cur+1}:</b> ${s.q}</p>`;
 
     if(s.tp === 'Kategori') {
@@ -116,10 +100,10 @@ const render = () => {
             let a = (ans[s.id] || "").split(',');
             if(a.length !== baris.length) a = new Array(baris.length).fill("");
             h += `<tr><td style="text-align:left">${txt}</td>
-            <td onclick="saveKat(${s.id},${i},'A',${baris.length})" style="cursor:pointer" class="${a[i]=='A'?'selected':''}">
+            <td onclick="saveKat(${s.id},${i},'A',${baris.length})" style="cursor:pointer">
                 <span class="ceklis">${a[i]=='A'?'✓':''}</span>
             </td>
-            <td onclick="saveKat(${s.id},${i},'B',${baris.length})" style="cursor:pointer" class="${a[i]=='B'?'selected':''}">
+            <td onclick="saveKat(${s.id},${i},'B',${baris.length})" style="cursor:pointer">
                 <span class="ceklis">${a[i]=='B'?'✓':''}</span>
             </td></tr>`;
         });
@@ -131,7 +115,7 @@ const render = () => {
         s.opt.forEach(o => {
             const sel = curA.includes(o.orig);
             h += `<div class="opt-btn ${sel?'selected':''}" onclick="selectOpt(this, '${typ}', ${s.id}, '${s.tp}')">
-                <input type="${typ}" name="q_${id}" value="${o.orig}" ${sel?'checked':''}> <span>${o.text}</span>
+                <input type="${typ}" name="q_${s.id}" value="${o.orig}" ${sel?'checked':''}> <span>${o.text}</span>
             </div>`;
         });
         h += `</div>`;
@@ -148,9 +132,14 @@ window.selectOpt = (el, typ, idS, tpS) => {
     } else {
         inp.checked = !inp.checked; el.classList.toggle('selected');
     }
-    const v = Array.from(document.querySelectorAll(`input[name="q_${idS}"]:checked`)).map(i => i.value);
-    ans[idS] = v.sort().join(','); saveSession(); updateGrid();
-    if(tpS === 'Sederhana' && v.length > 0) setTimeout(() => move(1), 500);
+    saveAns(idS, tpS);
+};
+
+window.saveAns = (id_soal, tipe) => {
+    const v = Array.from(document.querySelectorAll(`input[name="q_${id_soal}"]:checked`)).map(i => i.value);
+    ans[id_soal] = v.sort().join(',');
+    saveSession(); updateGrid();
+    if((tipe === 'Sederhana' || tipe === 'Sederhana Berkelompok') && v.length > 0) setTimeout(() => move(1), 600);
 };
 
 window.saveKat = (idS, idx, val, tot) => {
@@ -158,6 +147,7 @@ window.saveKat = (idS, idx, val, tot) => {
     if(a.length !== tot) a = new Array(tot).fill("");
     a[idx] = val; ans[idS] = a.join(',');
     saveSession(); render();
+    if(a.every(x => x !== "")) setTimeout(() => move(1), 600);
 };
 
 const updateGrid = () => {
@@ -167,7 +157,7 @@ const updateGrid = () => {
             if(s.tp === 'Kategori') ok = ans[s.id].split(',').filter(x=>x).length === s.q.split(';').length;
             else ok = ans[s.id] !== "";
         }
-        return `<div class="box ${ok?'done':''} ${i===cur?'now':''}" onclick="cur=${i};render()">${i+1}</div>`;
+        return `<div class="box ${ok?'done':''} ${i===cur?'now':''}" onclick="cur=${i};render();saveSession()">${i+1}</div>`;
     }).join('');
     id('nav-buttons').innerHTML = `
         <div style="display:flex; gap:10px">
@@ -176,13 +166,11 @@ const updateGrid = () => {
         </div>`;
 };
 
-window.move = (step) => { let n = cur + step; if(n >= 0 && n < qs.length) { cur = n; render(); } };
-window.preFinish = () => { if(confirm("Kirim seluruh jawaban Anda sekarang?")) autoFinish(); };
+window.move = (step) => { let n = cur + step; if(n >= 0 && n < qs.length) { cur = n; render(); saveSession(); } };
 
 const autoFinish = async () => {
     clearInterval(tInt); isLive = false;
     let totalPoinKunci = 0, totalPoinBenar = 0;
-
     qs.forEach(q => {
         const kunci = q.key.split(',').filter(x=>x);
         const user = (ans[q.id] || "").split(',').filter(x=>x);
