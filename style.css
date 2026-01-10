@@ -1,60 +1,46 @@
-:root {
-    --brand: #2c3e50;
-    --accent: #3498db;
-    --success: #27ae60;
-    --danger: #e74c3c;
-    --warning: #f1c40f;
-    --smoke: #f8f9fa;
+:root { 
+    --primary: #007bff; 
+    --success: #28a745; 
+    --danger: #dc3545; 
+    --bg: #f8f9fa; 
 }
 
-* { box-sizing: border-box; }
-body { margin: 0; font-family: 'Inter', sans-serif; background: #eaeff2; transition: background 0.4s; }
+body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); transition: background 0.4s; }
 
-/* Loader Overlay */
-.loader-overlay {
-    display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.9);
-    z-index: 1000; flex-direction: column; justify-content: center; align-items: center;
+/* Loader Overlay [cite: 16, 59] */
+.loader-overlay { 
+    display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.9); 
+    z-index: 9999; flex-direction: column; justify-content: center; align-items: center; 
 }
-.loader-content i { font-size: 4rem; color: var(--accent); margin-bottom: 1rem; }
 
-/* Security Alerts */
-.warn-y { animation: blink-yellow 1s infinite; }
-.warn-r { background-color: var(--danger) !important; color: white; }
-@keyframes blink-yellow { 0%, 100% { background: white; } 50% { background: #fff3cd; } }
-
-/* Page Control */
-.page { display: none; width: 100%; min-height: 100vh; }
+.page { display: none; min-height: 100vh; padding: 20px; box-sizing: border-box; }
 .active { display: block; }
 
-/* Login UI */
-.login-wrapper { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-.login-box { width: 400px; background: white; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); padding: 2.5rem; }
-.login-header { text-align: center; margin-bottom: 2rem; color: var(--brand); }
-.login-header i { font-size: 3.5rem; }
-.f-group { margin-bottom: 1.5rem; }
-.f-group label { display: block; font-weight: bold; font-size: 0.9rem; margin-bottom: 0.5rem; }
-.f-group input { width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; }
+.card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 20px auto; max-width: 600px; }
 
-/* Button Styles */
-.btn-main { width: 100%; padding: 1rem; border: none; background: var(--brand); color: white; border-radius: 6px; cursor: pointer; font-weight: bold; }
-.btn-start { padding: 1rem 2rem; border: none; background: var(--success); color: white; border-radius: 6px; cursor: pointer; font-weight: bold; }
+/* Grid Navigasi [cite: 12, 55] */
+.grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 15px 0; }
+@media (min-width: 600px) { .grid { grid-template-columns: repeat(10, 1fr); } }
 
-/* Quiz Layout */
-.quiz-nav { background: var(--brand); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 900; }
-.timer-display { font-family: monospace; font-size: 1.8rem; font-weight: bold; }
+.box { padding: 12px 5px; background: #ddd; border-radius: 6px; text-align: center; cursor: pointer; font-weight: bold; }
+.box.done { background: var(--primary); color: white; } /* [cite: 17, 60] */
+.box.now { background: #ffc107; border: 2px solid #333; } /* [cite: 18, 61] */
 
-.quiz-container { display: grid; grid-template-columns: 280px 1fr; gap: 2rem; padding: 2rem; max-width: 1300px; margin: auto; }
-.nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.6rem; }
-.box-num { aspect-ratio: 1; display: flex; justify-content: center; align-items: center; background: white; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; font-weight: bold; }
-.box-num.done { background: var(--accent); color: white; border-color: var(--accent); }
-.box-num.active-soal { border: 3px solid var(--brand); background: #eee; }
+/* Keamanan Visual: Indikator Kecurangan [cite: 19, 62, 63] */
+.warn-y { background: #fff3cd !important; animation: blink-y 1s infinite; }
+.warn-r { background: #f8d7da !important; animation: blink-r 0.5s infinite; }
 
-.stimulus-box { background: #eef2f7; border-left: 6px solid var(--accent); padding: 1.5rem; margin-bottom: 1.5rem; border-radius: 0 8px 8px 0; font-size: 1.1rem; line-height: 1.6; }
-.option-btn { display: flex; align-items: center; width: 100%; padding: 1.2rem; background: white; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 0.8rem; cursor: pointer; transition: 0.2s; }
-.option-btn:hover { background: #f0f7ff; }
-.option-btn.selected { border-color: var(--accent); background: #e3f2fd; box-shadow: 0 0 0 2px var(--accent); }
-.opt-char { width: 35px; height: 35px; display: flex; justify-content: center; align-items: center; background: #eee; border-radius: 50%; margin-right: 1rem; font-weight: bold; }
+@keyframes blink-y { 0%, 100% { background: white; } 50% { background: #fff3cd; } }
+@keyframes blink-r { 0%, 100% { background: #f8d7da; } 50% { background: #dc3545; } }
 
-@media (max-width: 900px) {
-    .quiz-container { grid-template-columns: 1fr; }
-}
+/* Komponen Soal */
+.stimulus { background: #f1f3f5; padding: 15px; border-left: 5px solid var(--primary); margin-bottom: 15px; font-style: italic; }
+.option-item { display: flex; align-items: center; padding: 15px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 10px; cursor: pointer; }
+.option-item input { margin-right: 15px; transform: scale(1.2); }
+
+.btn { padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; }
+.btn-blue { background: var(--primary); color: white; }
+.btn-gray { background: #6c757d; color: white; }
+.btn-success { background: var(--success); color: white; }
+
+#timer { position: sticky; top: 0; background: #333; color: white; text-align: center; padding: 12px; font-weight: bold; z-index: 1000; font-size: 1.2rem; }
