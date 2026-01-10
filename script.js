@@ -33,12 +33,20 @@ const loadSession = () => {
 const initApp = () => {
     id('login-root').innerHTML = `
         <div class="card" style="max-width:400px; margin: 40px auto;">
-            <h2 style="text-align:center; color: var(--primary)">CBT LOGIN</h2>
+            <h2 style="text-align:center; color: var(--primary)">CBT LOGINSn</h2>
             <div class="input-group"><input type="text" id="nisn" placeholder="NISN"></div>
-            <div class="input-group"><input type="password" id="pass" placeholder="Password"><i class="fa fa-eye toggle-pass" onclick="togglePass()"></i></div>
+            <div class="input-group">
+                <input type="password" id="pass" placeholder="Password">
+                <i class="fa fa-eye toggle-pass" onclick="togglePass()"></i>
+            </div>
             <div class="input-group"><input type="text" id="token" placeholder="Token Ujian"></div>
             <button class="btn btn-blue" onclick="login()">MASUK</button>
         </div>`;
+};
+
+window.togglePass = () => {
+    const p = id('pass');
+    p.type = p.type === 'password' ? 'text' : 'password';
 };
 
 window.login = async () => {
@@ -52,11 +60,11 @@ window.login = async () => {
             <div class="card">
                 <h2 style="color:var(--primary); margin-top:0">Selamat Datang, ${u.nama} (${u.kelas})</h2>
                 <p>Anda akan mengerjakan Ujian dengan rincian sebagai berikut :</p>
-                <div style="background:#e7f1ff; padding:15px; border-radius:8px; line-height: 1.2; margin-bottom:20px">
-                    <p style="margin:5px 0"><b>Mata Pelajaran:</b> ${ex.mapel}</p>
-                    <p style="margin:5px 0"><b>Guru Pengampu:</b> ${ex.nama_guru}</p>
-                    <p style="margin:5px 0"><b>Durasi:</b> ${ex.durasi} Menit</p>
-                    <p style="margin:5px 0"><b>Jumlah Soal:</b> ${ex.total}</p>
+                <div style="background:#e7f1ff; padding:20px; border-radius:12px; line-height: 1.1; margin-bottom:20px">
+                    <p><b>Mata Pelajaran:</b> ${ex.mapel}</p>
+                    <p><b>Guru Pengampu:</b> ${ex.nama_guru}</p>
+                    <p><b>Durasi:</b> ${ex.durasi} Menit</p>
+                    <p><b>Jumlah Soal:</b> ${ex.total}</p>
                 </div>
                 <div style="color:var(--danger); font-size:14px; margin-bottom:20px">
                     <p><b>PERINGATAN TATA TERTIB:</b></p>
@@ -151,22 +159,30 @@ window.saveKat = (idS, idx, val, tot) => {
 };
 
 const updateGrid = () => {
+    let doneCount = 0;
     id('nav-grid').innerHTML = qs.map((s, i) => {
         let ok = false;
         if(ans[s.id]) {
             if(s.tp === 'Kategori') ok = ans[s.id].split(',').filter(x=>x).length === s.q.split(';').length;
             else ok = ans[s.id] !== "";
         }
+        if(ok) doneCount++;
         return `<div class="box ${ok?'done':''} ${i===cur?'now':''}" onclick="cur=${i};render();saveSession()">${i+1}</div>`;
     }).join('');
+
     id('nav-buttons').innerHTML = `
         <div style="display:flex; gap:10px">
             <button class="btn btn-gray" onclick="move(-1)">KEMBALI</button>
-            <button class="btn btn-blue" onclick="${cur===qs.length-1?'preFinish()':'move(1)'}">${cur===qs.length-1?'KIRIM JAWABAN':'LANJUT'}</button>
+            ${cur === qs.length - 1 ? 
+                `<button class="btn btn-success" onclick="preFinish()" id="btn-finish">KIRIM JAWABAN</button>` : 
+                `<button class="btn btn-blue" onclick="move(1)">LANJUT</button>`
+            }
         </div>`;
 };
 
 window.move = (step) => { let n = cur + step; if(n >= 0 && n < qs.length) { cur = n; render(); saveSession(); } };
+
+window.preFinish = () => { if(confirm("Kirim seluruh jawaban Anda sekarang?")) autoFinish(); };
 
 const autoFinish = async () => {
     clearInterval(tInt); isLive = false;
