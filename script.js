@@ -3,7 +3,6 @@ const API_URL = 'https://cbt.donnyn1980.workers.dev';
 
 const id = (e) => document.getElementById(e);
 
-// Keamanan: Disable F12, Inspect Element, dan View Source
 document.onkeydown = (e) => {
     if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || (e.ctrlKey && e.keyCode == 85)) return false;
 };
@@ -18,13 +17,10 @@ const driveConvert = (url) => {
     if (url.includes("drive.google.com")) {
         let fileId = "";
         try {
-            if (url.includes("/file/d/")) {
-                fileId = url.split("/file/d/")[1].split("/")[0].split("?")[0];
-            } else if (url.includes("id=")) {
-                fileId = url.split("id=")[1].split("&")[0];
-            }
+            if (url.includes("/file/d/")) fileId = url.split("/file/d/")[1].split("/")[0].split("?")[0];
+            else if (url.includes("id=")) fileId = url.split("id=")[1].split("&")[0];
             if (fileId) return `https://lh3.googleusercontent.com/d/${fileId}`;
-        } catch (e) { console.error("Converter Drive Error"); }
+        } catch (e) { console.error("Converter Error"); }
     }
     return url;
 };
@@ -46,17 +42,10 @@ const loadSession = () => {
             render();
             const now = new Date().getTime();
             const startT = new Date(tIn).getTime();
-            const limitSec = ex.durasi * 60;
             const elapsed = Math.floor((now - startT) / 1000);
-            runTimer(limitSec - elapsed);
-        } else {
-            initApp();
-            id('p-login').classList.add('active');
-        }
-    } else {
-        initApp();
-        id('p-login').classList.add('active');
-    }
+            runTimer((ex.durasi * 60) - elapsed);
+        } else { initApp(); id('p-login').classList.add('active'); }
+    } else { initApp(); id('p-login').classList.add('active'); }
 };
 
 const initApp = () => {
@@ -82,22 +71,36 @@ window.togglePass = () => {
 window.login = async () => {
     const n = id('nisn').value, p = id('pass').value, t = id('token').value;
     if(!n || !p || !t) return alert("Lengkapi data!");
-    showLoader(true, "Memverifikasi Password...");
+    showLoader(true, "Memverifikasi...");
     try {
         const r = await fetch(`${API_URL}/login`, { method: 'POST', body: JSON.stringify({ nisn: n, password: p, token: t }) });
         const d = await r.json();
         if(d.success) {
             u = d.siswa; ex = d.infoUjian; ex.total = d.totalSoal;
             id('p-login').classList.remove('active'); id('p-info').classList.add('active');
+            // MENGEMBALIKAN HALAMAN SAMBUTAN LENGKAP
             id('info-root').innerHTML = `
                 <div class="card">
-                    <h3>Halo, ${u.nama}</h3>
-                    <p><b>Mapel:</b> ${ex.mapel}<br><b>Kelas:</b> ${u.kelas}<br><b>Durasi:</b> ${ex.durasi} Menit</p>
-                    <button class="btn btn-blue" onclick="start()">MULAI UJIAN</button>
+                    <h2 style="color:var(--primary); margin-top:0">Selamat Datang, ${u.nama}</h2>
+                    <div style="background:#e7f1ff; padding:15px; border-radius:8px; margin-bottom:20px">
+                        <p><b>Mata Pelajaran:</b> ${ex.mapel}</p>
+                        <p><b>Guru Pengampu:</b> ${ex.nama_guru}</p>
+                        <p><b>Durasi:</b> ${ex.durasi} Menit</p>
+                        <p><b>Jumlah Soal:</b> ${ex.total}</p>
+                    </div>
+                    <div style="color:#d9534f; font-size:14px; margin-bottom:20px">
+                        <p><b>PERINGATAN TATA TERTIB:</b></p>
+                        <ul>
+                            <li>Jangan berpindah tab atau meminimalkan browser.</li>
+                            <li>Setiap pelanggaran (pindah tab) akan dicatat oleh sistem.</li>
+                            <li>Jika melanggar lebih dari batas yang ditentukan, ujian akan dihentikan otomatis.</li>
+                        </ul>
+                    </div>
+                    <button class="btn btn-blue" onclick="start()">SAYA MENGERTI & MULAI</button>
                 </div>
             `;
-        } else alert("Akses Ditolak! Cek NISN/Password/Token.");
-    } catch(e) { alert("Server Error!"); }
+        } else alert("Akses Ditolak!");
+    } catch(e) { alert("Error Server!"); }
     showLoader(false);
 };
 
@@ -128,27 +131,37 @@ const render = () => {
     const imgUrl = driveConvert(s.img);
     let h = `<div class="card">
         ${s.st ? `<div class="stimulus">${s.st}</div>` : ''}
-        ${imgUrl ? `<img src="${imgUrl}" class="soal-img" onerror="this.src='https://placehold.co/400x200?text=Gambar+Drive+Dibatasi'">` : ''}
+        ${imgUrl ? `<img src="${imgUrl}" class="soal-img" onerror="this.src='https://placehold.co/400x200?text=Gambar+Tidak+Tampil'">` : ''}
         <p style="font-size:18px"><b>Soal ${cur+1}:</b> ${s.q}</p>`;
 
     if(s.tp === 'Kategori') {
         const baris = s.q.split(';');
-        h += `<table><tr><th>Kategori</th><th>${s.kat[0]}</th><th>${s.kat[1]}</th></tr>`;
+        h += `<table><tr><th>Item</th><th>${s.kat[0]}</th><th>${s.kat[1]}</th></tr>`;
         baris.forEach((txt, i) => {
             let a = (ans[s.id] || "").split(',');
             if(a.length !== baris.length) a = new Array(baris.length).fill("");
             h += `<tr><td style="text-align:left">${txt}</td>
-            <td><input type="radio" name="k_${s.id}_${i}" value="A" ${a[i]=='A'?'checked':''} onchange="saveKat(${s.id},${i},'A',${baris.length})"></td>
-            <td><input type="radio" name="k_${s.id}_${i}" value="B" ${a[i]=='B'?'checked':''} onchange="saveKat(${s.id},${i},'B',${baris.length})"></td></tr>`;
+            <td onclick="selectKat(${s.id},${i},'A',${baris.length})" class="${a[i]=='A'?'selected':''}" style="cursor:pointer">
+                <input type="radio" name="k_${s.id}_${i}" value="A" ${a[i]=='A'?'checked':''} style="display:none"> ${a[i]=='A'?'●':'○'}
+            </td>
+            <td onclick="selectKat(${s.id},${i},'B',${baris.length})" class="${a[i]=='B'?'selected':''}" style="cursor:pointer">
+                <input type="radio" name="k_${s.id}_${i}" value="B" ${a[i]=='B'?'checked':''} style="display:none"> ${a[i]=='B'?'●':'○'}
+            </td></tr>`;
         });
         h += `</table>`;
     } else {
         const typ = s.tp === 'MCMA' ? 'checkbox' : 'radio';
         const curA = (ans[s.id] || "").split(',');
+        h += `<div class="option-wrapper">`;
         s.opt.forEach(o => {
-            const isC = curA.includes(o.orig) ? 'checked' : '';
-            h += `<label class="option-item"><input type="${typ}" name="q_${s.id}" value="${o.orig}" ${isC} onchange="saveAns(${s.id},'${s.tp}')"> ${o.text}</label>`;
+            const isSelected = curA.includes(o.orig);
+            h += `
+                <div class="opt-btn ${isSelected?'selected':''}" onclick="selectOpt(this, '${typ}', ${s.id}, '${s.tp}')">
+                    <input type="${typ}" name="q_${s.id}" value="${o.orig}" ${isSelected?'checked':''}>
+                    <span>${o.text}</span>
+                </div>`;
         });
+        h += `</div>`;
     }
     id('display-soal').innerHTML = h + `</div>`;
     id('nav-buttons').innerHTML = `
@@ -157,6 +170,24 @@ const render = () => {
         <button id="btn-finish" class="btn" style="background:var(--success); color:white; display:none" onclick="preFinish()">KIRIM JAWABAN</button>
     `;
     updateGrid();
+};
+
+window.selectOpt = (el, typ, idSoal, tipeSoal) => {
+    const input = el.querySelector('input');
+    if(typ === 'radio') {
+        document.querySelectorAll(`.opt-btn`).forEach(b => b.classList.remove('selected'));
+        el.classList.add('selected');
+        input.checked = true;
+    } else {
+        input.checked = !input.checked;
+        el.classList.toggle('selected');
+    }
+    saveAns(idSoal, tipeSoal);
+};
+
+window.selectKat = (idSoal, idx, val, tot) => {
+    saveKat(idSoal, idx, val, tot);
+    render(); // Re-render untuk update highlight tabel
 };
 
 window.saveAns = (id_soal, tipe) => {
@@ -178,14 +209,13 @@ const updateGrid = () => {
     const g = id('nav-grid'); g.innerHTML = '';
     let done = 0;
     qs.forEach((s, i) => {
-        let cls = 'box', ok = false;
+        let ok = false;
         if(ans[s.id]) {
             if(s.tp === 'Kategori') ok = ans[s.id].split(',').filter(x=>x).length === s.q.split(';').length;
             else ok = ans[s.id] !== "";
         }
-        if(ok) { cls += ' done'; done++; }
-        if(i === cur) cls += ' now';
-        g.innerHTML += `<div class="${cls}" onclick="cur=${i};render();saveSession()">${i+1}</div>`;
+        if(ok) done++;
+        g.innerHTML += `<div class="box ${ok?'done':''} ${i===cur?'now':''}" onclick="cur=${i};render();saveSession()">${i+1}</div>`;
     });
     if(id('btn-finish')) id('btn-finish').style.display = (done === qs.length) ? 'block' : 'none';
 };
@@ -200,52 +230,37 @@ const autoFinish = async () => {
     showLoader(true, "Mengirim Nilai...");
     if(tInt) clearInterval(tInt);
     isLive = false;
-    
-    let jml_benar = 0;
-    const sorted = [...qs].sort((a, b) => a.id - b.id);
-    const logAns = sorted.map(q => {
-        const userA = ans[q.id] || "-";
-        if(userA.toString().trim() === q.key.toString().trim()) jml_benar++;
-        return userA;
+    let b = 0;
+    const sorted = [...qs].sort((x,y) => x.id - y.id);
+    const logA = sorted.map(q => {
+        const ua = ans[q.id] || "-";
+        if(ua.toString().trim() === q.key.toString().trim()) b++;
+        return ua;
     }).join('|');
 
+    // PERBAIKAN LOGIKA JENJANG
+    const jnj = ex.jenjang ? ex.jenjang.toString() : "X";
+
     const body = {
-        nisn: u.nisn,
-        nama: u.nama,
-        nama_guru: ex.nama_guru,
-        mapel: ex.mapel,
-        kelas: u.kelas,
-        jenjang: ex.jenjang, // Dikirim hanya sebagai penentu tabel di server
-        nilai: ((jml_benar / qs.length) * 100).toFixed(2),
-        jml_curang: fraud,
-        jml_benar: jml_benar,
-        jml_salah: qs.length - jml_benar,
-        wkt_masuk: new Date(tIn).toLocaleString('id-ID'),
+        nisn: u.nisn, nama: u.nama, nama_guru: ex.nama_guru, mapel: ex.mapel, kelas: u.kelas, 
+        jenjang: jnj, nilai: ((b/qs.length)*100).toFixed(2),
+        jml_curang: fraud, jml_benar: b, jml_salah: qs.length-b,
+        wkt_masuk: new Date(tIn).toLocaleString('id-ID'), 
         wkt_submit: new Date().toLocaleString('id-ID'),
-        wkt_digunakan: `${Math.floor((new Date() - new Date(tIn)) / 60000)} Menit`,
-        jawaban: logAns
+        wkt_digunakan: `${Math.floor((new Date()-new Date(tIn))/60000)} Menit`, jawaban: logA
     };
 
     try {
         const res = await fetch(`${API_URL}/submit`, { 
             method: 'POST', 
-            headers: { 'Content-Type': 'application/json' },
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(body) 
         });
-        
         const resData = await res.json();
-        if(resData.success) { 
-            alert("Ujian Selesai!");
-            localStorage.clear(); 
-            location.reload(); 
-        } else {
-            alert("Gagal simpan: " + resData.error);
-        }
-    } catch(e) { 
-        alert("Gagal kirim! Periksa koneksi."); 
-    } finally {
-        showLoader(false);
-    }
+        if(resData.success) { localStorage.clear(); location.reload(); }
+        else alert("Gagal: " + resData.error);
+    } catch(e) { alert("Error koneksi!"); }
+    showLoader(false);
 };
 
 document.addEventListener("visibilitychange", () => {
