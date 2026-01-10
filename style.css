@@ -9,49 +9,38 @@ body {
 .active { display: block; }
 .container { max-width: 800px; margin: auto; }
 
-/* Tampilan Kartu Login yang Menarik */
+/* Tampilan Kartu Login & Info */
 .card { 
     background: white; padding: 30px; border-radius: 15px; 
     box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-bottom: 20px; 
-    transition: transform 0.3s ease;
 }
-.card:hover { transform: translateY(-5px); }
-
 .input-group { position: relative; margin-bottom: 20px; }
 input { 
     width: 100%; padding: 14px 12px; border: 2px solid #eee; 
-    border-radius: 10px; font-size: 16px; box-sizing: border-box; 
-    outline: none; transition: 0.3s;
+    border-radius: 10px; font-size: 16px; box-sizing: border-box; outline: none; 
 }
-input:focus { border-color: var(--primary); box-shadow: 0 0 8px rgba(0,123,255,0.2); }
-.toggle-pass { 
-    position: absolute; right: 15px; top: 18px; 
-    cursor: pointer; color: #aaa; z-index: 10; 
-}
+input:focus { border-color: var(--primary); }
+.toggle-pass { position: absolute; right: 15px; top: 18px; cursor: pointer; color: #aaa; z-index: 10; }
 
-/* Gambar Mobile Friendly */
+/* Gambar & Soal */
 .soal-img { 
     display: block; width: 100%; max-width: 100%; height: auto; 
     max-height: 250px; object-fit: contain; margin: 15px auto; border-radius: 8px; 
 }
+.stimulus { background: #f8f9fa; padding: 15px; border-left: 5px solid var(--primary); margin-bottom: 15px; font-style: italic; color: #444; border-radius: 0 8px 8px 0; }
 
-/* Pilihan Jawaban Tombol Profesional */
+/* Tombol Jawaban Profesional */
 .option-wrapper { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
 .opt-btn { 
     display: flex; align-items: center; padding: 15px; border: 2px solid #eee; 
     border-radius: 12px; cursor: pointer; transition: 0.3s; background: white;
 }
 .opt-btn input { display: none; }
-.opt-btn:hover { border-color: var(--primary); background: #f8fbff; }
-.opt-btn.selected { 
-    border-color: var(--primary); background: #e7f1ff; 
-    font-weight: bold; box-shadow: 0 4px 10px rgba(0,123,255,0.15); 
-}
+.opt-btn.selected { border-color: var(--primary); background: #e7f1ff; font-weight: bold; }
 
-/* Kategori & Ceklis */
-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 15px; background: white; border-radius: 10px; overflow: hidden; }
+/* Kategori Ceklis */
+table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
 th, td { border: 1px solid #f0f0f0; padding: 15px; text-align: center; }
-th { background: #f8f9fa; color: #555; }
 .ceklis { color: var(--success); font-size: 22px; font-weight: bold; }
 
 /* Efek Berkedip Curang */
@@ -60,15 +49,14 @@ th { background: #f8f9fa; color: #555; }
 .warn-y { animation: blink-yellow 1s infinite; }
 .warn-r { animation: blink-red 0.5s infinite; }
 
-#timer { position: sticky; top: 0; background: #333; color: white; text-align: center; padding: 12px; z-index: 1000; border-radius: 0 0 15px 15px; font-size: 18px; }
+#timer { position: sticky; top: 0; background: #333; color: white; text-align: center; padding: 12px; z-index: 1000; border-radius: 0 0 15px 15px; }
 .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 15px 0; }
 .box { padding: 12px 5px; background: #e0e0e0; border-radius: 8px; text-align: center; cursor: pointer; font-size: 14px; font-weight: bold; }
 .box.done { background: var(--primary); color: white; }
 .box.now { background: #ffc107; border: 2px solid #333; }
 
-.btn { width: 100%; padding: 16px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
-.btn-blue { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(0,123,255,0.3); }
-.btn-blue:hover { background: #0056b3; transform: scale(1.02); }
+.btn { width: 100%; padding: 16px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+.btn-blue { background: var(--primary); color: white; }
 .btn-gray { background: #6c757d; color: white; }
 
-footer { text-align: center; font-size: 13px; color: #bbb; padding: 30px 0; }
+footer { text-align: center; font-size: 13px; color: #bbb; padding: 30px 0; border-top: 1px solid #eee; margin-top: 20px; }
