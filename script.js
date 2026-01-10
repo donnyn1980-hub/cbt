@@ -3,12 +3,17 @@ const API_URL = 'https://cbt.donnyn1980.workers.dev';
 
 const id = (e) => document.getElementById(e);
 
+// Keamanan Tambahan
+document.onkeydown = (e) => {
+    if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || (e.ctrlKey && e.keyCode == 85)) return false;
+};
+
 const driveConvert = (url) => {
     if (!url || url === "-" || url.trim() === "") return null;
     let fileId = "";
     if (url.includes("/file/d/")) fileId = url.split("/file/d/")[1].split("/")[0];
     else if (url.includes("id=")) fileId = url.split("id=")[1].split("&")[0];
-    return fileId ? `https://lh3.googleusercontent.com/d/${fileId}` : url;
+    return fileId ? `https://lh3.googleusercontent.com/u/0/d/${fileId}` : url;
 };
 
 const saveSession = () => {
@@ -18,45 +23,67 @@ const saveSession = () => {
 const loadSession = () => {
     const data = localStorage.getItem('cbt_session');
     if (data) {
-        Object.assign(window, JSON.parse(data));
+        const s = JSON.parse(data);
+        Object.assign(window, s);
         if (isLive) {
             id('p-login').classList.remove('active'); id('p-quiz').classList.add('active');
-            render(); runTimer((ex.durasi * 60) - Math.floor((new Date().getTime() - new Date(tIn).getTime()) / 1000));
+            render();
+            const elapsed = Math.floor((new Date().getTime() - new Date(tIn).getTime()) / 1000);
+            runTimer((ex.durasi * 60) - elapsed);
         } else { initApp(); id('p-login').classList.add('active'); }
     } else { initApp(); id('p-login').classList.add('active'); }
 };
 
 const initApp = () => {
     id('login-root').innerHTML = `
-        <div class="card" style="max-width:400px; margin: auto;">
-            <h2 style="text-align:center; color: var(--primary)">CBT LOGIN</h2>
-            <input type="text" id="nisn" placeholder="NISN" style="margin-bottom:10px">
-            <input type="password" id="pass" placeholder="Password" style="margin-bottom:10px">
-            <input type="text" id="token" placeholder="Token Ujian" style="margin-bottom:10px">
+        <div class="card" style="max-width:400px; margin: 40px auto;">
+            <h2 style="text-align:center; color: var(--primary); margin-bottom: 25px;">CBT LOGIN</h2>
+            <div class="input-group">
+                <input type="text" id="nisn" placeholder="NISN">
+            </div>
+            <div class="input-group">
+                <input type="password" id="pass" placeholder="Password">
+                <i class="fa fa-eye toggle-pass" onclick="togglePass()"></i>
+            </div>
+            <div class="input-group">
+                <input type="text" id="token" placeholder="Token Ujian">
+            </div>
             <button class="btn btn-blue" onclick="login()">MASUK</button>
         </div>`;
 };
 
+window.togglePass = () => {
+    const p = id('pass');
+    p.type = p.type === 'password' ? 'text' : 'password';
+};
+
 window.login = async () => {
     const n = id('nisn').value, p = id('pass').value, t = id('token').value;
-    const r = await fetch(`${API_URL}/login`, { method: 'POST', body: JSON.stringify({ nisn: n, password: p, token: t }) });
-    const d = await r.json();
-    if(d.success) {
-        u = d.siswa; ex = d.infoUjian; ex.total = d.totalSoal;
-        id('p-login').classList.remove('active'); id('p-info').classList.add('active');
-        id('info-root').innerHTML = `
-            <div class="card">
-                <h2>Selamat Datang, ${u.nama} (${u.kelas})</h2>
-                <p>Anda akan mengerjakan Ujian dengan rincian sebagai berikut :</p>
-                <div style="background:#e7f1ff; padding:15px; border-radius:8px; line-height: 1.1; margin-bottom:15px">
-                    <p><b>Mata Pelajaran:</b> ${ex.mapel}</p>
-                    <p><b>Guru Pengampu:</b> ${ex.nama_guru}</p>
-                    <p><b>Durasi:</b> ${ex.durasi} Menit</p>
-                    <p><b>Jumlah Soal:</b> ${ex.total}</p>
-                </div>
-                <button class="btn btn-blue" onclick="start()">SAYA MENGERTI & MULAI</button>
-            </div>`;
-    } else alert("Akses Ditolak!");
+    if(!n || !p || !t) return alert("Lengkapi data!");
+    
+    try {
+        const r = await fetch(`${API_URL}/login`, { method: 'POST', body: JSON.stringify({ nisn: n, password: p, token: t }) });
+        const d = await r.json();
+        if(d.success) {
+            u = d.siswa; ex = d.infoUjian; ex.total = d.totalSoal;
+            id('p-login').classList.remove('active'); id('p-info').classList.add('active');
+            id('info-root').innerHTML = `
+                <div class="card">
+                    <h2 style="color:var(--primary); margin-top:0">Selamat Datang, ${u.nama} (${u.kelas})</h2>
+                    <p>Anda akan mengerjakan Ujian dengan rincian sebagai berikut :</p>
+                    <div style="background:#e7f1ff; padding:20px; border-radius:12px; line-height: 1.1; margin-bottom:20px">
+                        <p><b>Mata Pelajaran:</b> ${ex.mapel}</p>
+                        <p><b>Guru Pengampu:</b> ${ex.nama_guru}</p>
+                        <p><b>Durasi:</b> ${ex.durasi} Menit</p>
+                        <p><b>Jumlah Soal:</b> ${ex.total}</p>
+                    </div>
+                    <div style="color:var(--danger); font-size:14px; margin-bottom:20px">
+                        <p><b>TATA TERTIB:</b> Pindah tab atau minimize akan dicatat sebagai pelanggaran!</p>
+                    </div>
+                    <button class="btn btn-blue" onclick="start()">SAYA MENGERTI & MULAI</button>
+                </div>`;
+        } else alert("Login Gagal!");
+    } catch(e) { alert("Server bermasalah!"); }
 };
 
 window.start = async () => {
@@ -69,7 +96,8 @@ window.start = async () => {
 const runTimer = (sec) => {
     tInt = setInterval(() => {
         if (sec <= 0) { clearInterval(tInt); autoFinish(); }
-        id('timer').innerText = `SISA WAKTU: ${Math.floor(sec/60)}:${sec%60<10?'0':''}${sec%60}`;
+        let m = Math.floor(sec/60), s = sec%60;
+        id('timer').innerText = `SISA WAKTU: ${m}:${s<10?'0':''}${s}`;
         sec--;
     }, 1000);
 };
@@ -78,8 +106,8 @@ const render = () => {
     const s = qs[cur], imgUrl = driveConvert(s.img);
     let h = `<div class="card">
         ${s.st ? `<div class="stimulus">${s.st}</div>` : ''}
-        ${imgUrl ? `<img src="${imgUrl}" class="soal-img">` : ''}
-        <p><b>Soal ${cur+1}:</b> ${s.q}</p>`;
+        ${imgUrl ? `<img src="${imgUrl}" class="soal-img" onerror="this.src='https://placehold.co/400x200?text=Gambar+Gagal+Dimuat'">` : ''}
+        <p style="font-size:18px"><b>Soal ${cur+1}:</b> ${s.q}</p>`;
 
     if(s.tp === 'Kategori') {
         const baris = s.q.split(';');
@@ -88,10 +116,10 @@ const render = () => {
             let a = (ans[s.id] || "").split(',');
             if(a.length !== baris.length) a = new Array(baris.length).fill("");
             h += `<tr><td style="text-align:left">${txt}</td>
-            <td onclick="saveKat(${s.id},${i},'A',${baris.length})" style="cursor:pointer">
+            <td onclick="saveKat(${s.id},${i},'A',${baris.length})" style="cursor:pointer" class="${a[i]=='A'?'selected':''}">
                 <span class="ceklis">${a[i]=='A'?'✓':''}</span>
             </td>
-            <td onclick="saveKat(${s.id},${i},'B',${baris.length})" style="cursor:pointer">
+            <td onclick="saveKat(${s.id},${i},'B',${baris.length})" style="cursor:pointer" class="${a[i]=='B'?'selected':''}">
                 <span class="ceklis">${a[i]=='B'?'✓':''}</span>
             </td></tr>`;
         });
@@ -103,7 +131,7 @@ const render = () => {
         s.opt.forEach(o => {
             const sel = curA.includes(o.orig);
             h += `<div class="opt-btn ${sel?'selected':''}" onclick="selectOpt(this, '${typ}', ${s.id}, '${s.tp}')">
-                <input type="${typ}" name="q_${s.id}" value="${o.orig}" ${sel?'checked':''}> ${o.text}
+                <input type="${typ}" name="q_${id}" value="${o.orig}" ${sel?'checked':''}> <span>${o.text}</span>
             </div>`;
         });
         h += `</div>`;
@@ -122,7 +150,7 @@ window.selectOpt = (el, typ, idS, tpS) => {
     }
     const v = Array.from(document.querySelectorAll(`input[name="q_${idS}"]:checked`)).map(i => i.value);
     ans[idS] = v.sort().join(','); saveSession(); updateGrid();
-    if(tpS === 'Sederhana') setTimeout(() => move(1), 500);
+    if(tpS === 'Sederhana' && v.length > 0) setTimeout(() => move(1), 500);
 };
 
 window.saveKat = (idS, idx, val, tot) => {
@@ -134,15 +162,22 @@ window.saveKat = (idS, idx, val, tot) => {
 
 const updateGrid = () => {
     id('nav-grid').innerHTML = qs.map((s, i) => {
-        const ok = ans[s.id] && ans[s.id].split(',').filter(x=>x).length > 0;
+        let ok = false;
+        if(ans[s.id]) {
+            if(s.tp === 'Kategori') ok = ans[s.id].split(',').filter(x=>x).length === s.q.split(';').length;
+            else ok = ans[s.id] !== "";
+        }
         return `<div class="box ${ok?'done':''} ${i===cur?'now':''}" onclick="cur=${i};render()">${i+1}</div>`;
     }).join('');
-    id('nav-buttons').innerHTML = `<button class="btn" onclick="move(-1)">KEMBALI</button>
-    <button class="btn btn-blue" onclick="${cur===qs.length-1?'preFinish()':'move(1)'}">${cur===qs.length-1?'KIRIM':'LANJUT'}</button>`;
+    id('nav-buttons').innerHTML = `
+        <div style="display:flex; gap:10px">
+            <button class="btn btn-gray" onclick="move(-1)">KEMBALI</button>
+            <button class="btn btn-blue" onclick="${cur===qs.length-1?'preFinish()':'move(1)'}">${cur===qs.length-1?'KIRIM JAWABAN':'LANJUT'}</button>
+        </div>`;
 };
 
 window.move = (step) => { let n = cur + step; if(n >= 0 && n < qs.length) { cur = n; render(); } };
-window.preFinish = () => { if(confirm("Kirim jawaban?")) autoFinish(); };
+window.preFinish = () => { if(confirm("Kirim seluruh jawaban Anda sekarang?")) autoFinish(); };
 
 const autoFinish = async () => {
     clearInterval(tInt); isLive = false;
