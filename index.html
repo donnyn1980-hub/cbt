@@ -2,324 +2,295 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem CBT - Ujian Online</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CBT SNIPER PRO - PREMIER EDITION</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --primary: #1a73e8; --secondary: #5f6368; --success: #188038; --danger: #d93025; --warning: #f9ab00; --bg: #f1f3f4; }
+        body { font-family: 'Google Sans', Roboto, Arial, sans-serif; margin: 0; background: var(--bg); user-select: none; color: #3c4043; transition: background 0.3s; }
+        .page { display: none; min-height: 100vh; padding: 20px; box-sizing: border-box; }
+        .active { display: block; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); margin-bottom: 20px; border-top: 8px solid var(--primary); position: relative; }
+        .input-group { position: relative; margin-bottom: 25px; }
+        .input-group label { display: block; margin-bottom: 10px; font-weight: 500; color: #202124; }
+        .input-group i { position: absolute; left: 15px; top: 42px; color: var(--primary); font-size: 18px; }
+        .input-group input { width: 100%; padding: 14px 15px 14px 45px; border: 1px solid #dadce0; border-radius: 8px; font-size: 16px; box-sizing: border-box; transition: all 0.3s; }
+        .input-group input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 2px rgba(26,115,232,0.2); }
+        .toggle-pass { position: absolute; right: 15px; top: 42px; cursor: pointer; color: var(--secondary); padding: 5px; z-index: 10; }
+        #timer { position: sticky; top: 0; background: #202124; color: white; text-align: center; padding: 15px; font-weight: bold; z-index: 1000; font-size: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border-bottom: 3px solid var(--warning); letter-spacing: 1px; }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 20px 0; padding: 10px; background: #fff; border-radius: 10px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+        @media (min-width: 600px) { .grid { grid-template-columns: repeat(10, 1fr); } }
+        .box { padding: 15px 5px; background: #fff; border: 2px solid #dadce0; border-radius: 8px; text-align: center; cursor: pointer; font-size: 15px; font-weight: bold; transition: 0.2s; color: #5f6368; }
+        .box.done { background: var(--success); color: white; border-color: var(--success); }
+        .box.now { background: var(--warning); border-color: #202124; color: #202124; transform: scale(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .stimulus { background: #f8f9fa; padding: 25px; border-left: 8px solid var(--primary); margin-bottom: 25px; font-style: normal; border-radius: 4px; line-height: 1.8; color: #3c4043; border: 1px solid #eee; }
+        .option-item { display: flex; align-items: center; padding: 18px; border: 2px solid #dadce0; border-radius: 12px; margin-bottom: 15px; cursor: pointer; transition: 0.2s; background: #fff; position: relative; }
+        .option-item:hover { background: #f7f8f8; border-color: #bdc1c6; }
+        .selected-opt { border-color: var(--primary) !important; background: #e8f0fe !important; font-weight: bold; color: var(--primary); }
+        .selected-opt::after { content: '\f058'; font-family: 'Font Awesome 5 Free'; font-weight: 900; position: absolute; right: 20px; font-size: 20px; }
+        .img-soal { width: 100%; max-height: 400px; object-fit: contain; border-radius: 12px; margin-bottom: 25px; border: 1px solid #dadce0; background: #fff; padding: 10px; box-sizing: border-box; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; border-radius: 8px; overflow: hidden; box-shadow: 0 0 0 1px #dadce0; }
+        th, td { border: 1px solid #dadce0; padding: 18px; text-align: center; }
+        th { background: #f8f9fa; font-weight: 600; color: #202124; }
+        .warn-y { animation: blink-yellow 1.5s infinite; }
+        .warn-r { animation: blink-red 0.6s infinite; }
+        @keyframes blink-yellow { 0%, 100% { background: #ffffff; } 50% { background: #fff3cd; } }
+        @keyframes blink-red { 0%, 100% { background: #ffffff; } 50% { background: #f8d7da; } }
+        .notif-bar { display: none; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; border: 1px solid transparent; }
+        .notif-error { display: block; background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+        .notif-success { display: block; background: #d4edda; color: #155724; border-color: #c3e6cb; }
+        .btn { width: 100%; padding: 18px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s ease; text-transform: uppercase; letter-spacing: 1.2px; }
+        .btn-blue { background: var(--primary); color: white; }
+        .btn-gray { background: #fff; color: #5f6368; border: 1px solid #dadce0; }
+        .btn:disabled { background: #dadce0 !important; color: #9aa0a6 !important; cursor: not-allowed; }
+        .loader-spin { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .footnote { text-align: center; color: #70757a; font-size: 14px; margin-top: 40px; padding-bottom: 40px; font-weight: 500; border-top: 1px solid #dadce0; padding-top: 20px; }
+    </style>
 </head>
-<body>
-    <!-- Loader Overlay -->
-    <div id="loader" class="loader-overlay">
-        <div class="loader-content">
-            <div class="spinner"></div>
-            <p id="loader-text">Memuat sistem ujian...</p>
-            <div class="progress-bar">
-                <div class="progress"></div>
+<body oncontextmenu="return false;">
+
+<div id="p-login" class="page active">
+    <div class="card" style="max-width:480px; margin: 80px auto;">
+        <div style="text-align:center; margin-bottom: 30px;">
+            <i class="fa fa-graduation-cap" style="font-size: 48px; color: var(--primary);"></i>
+            <h2 style="color: #202124; margin-top: 15px;">LOGIN PESERTA UJIAN</h2>
+        </div>
+        <div id="notif-login" class="notif-bar"></div>
+        <div class="input-group">
+            <label>Nomor Induk Siswa Nasional (NISN)</label>
+            <i class="fa fa-user-circle"></i>
+            <input type="text" id="nisn" placeholder="Masukkan NISN">
+        </div>
+        <div class="input-group">
+            <label>Kata Sandi Akun</label>
+            <i class="fa fa-lock"></i>
+            <input type="password" id="pass" placeholder="Masukkan Password">
+            <i class="fa fa-eye toggle-pass" onclick="togglePass()"></i>
+        </div>
+        <div class="input-group">
+            <label>Token Sesi Ujian</label>
+            <i class="fa fa-ticket-alt"></i>
+            <input type="text" id="token" placeholder="Masukkan Token">
+        </div>
+        <button class="btn btn-blue" id="btn-login" onclick="login()">OTENTIKASI MASUK</button>
+    </div>
+    <div class="footnote">DEVELOPED BY DONNY NUGROHO © 2026</div>
+</div>
+
+<div id="p-info" class="page">
+    <div class="card" style="max-width:700px; margin: auto;">
+        <h3 id="txt-sapa" style="color: var(--primary); margin-top: 0;"></h3>
+        <div style="background: #e8f0fe; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p id="txt-detail" style="white-space: pre-wrap; line-height: 1.8; margin: 0; font-size: 16px; color: #1967d2;"></p>
+        </div>
+        <button class="btn btn-blue" onclick="start()">KONFIRMASI & MULAI SEKARANG</button>
+    </div>
+    <div class="footnote">DEVELOPED BY DONNY NUGROHO © 2026</div>
+</div>
+
+<div id="p-quiz" class="page" style="padding:0">
+    <div id="timer">SISA WAKTU: --:--</div>
+    <div class="container" style="padding:20px; max-width: 900px; margin: auto;">
+        <div id="notif-quiz" class="notif-bar"></div>
+        <div id="quiz-content">
+            <div class="grid" id="nav-grid"></div>
+            <div id="display-soal"></div>
+            <div style="display:flex; gap:20px; margin-top: 25px;">
+                <button class="btn btn-gray" style="flex:1" onclick="move(-1)"><i class="fa fa-arrow-left"></i> SEBELUMNYA</button>
+                <button id="btn-next" class="btn btn-blue" style="flex:1" onclick="move(1)">SELANJUTNYA <i class="fa fa-arrow-right"></i></button>
+            </div>
+            <div id="area-finish" style="display:none; margin-top: 25px;">
+                <button id="btn-finish" class="btn" style="background:var(--success); color:white; font-size: 18px;" onclick="submitJawaban()"><i class="fa fa-paper-plane"></i> SELESAI & KIRIM JAWABAN</button>
             </div>
         </div>
-    </div>
-
-    <!-- Panel Login -->
-    <div id="p-login" class="panel active">
-        <div class="login-container">
-            <div class="login-header">
-                <i class="fas fa-graduation-cap logo"></i>
-                <h1>Sistem Ujian CBT</h1>
-                <p class="subtitle">Computer Based Test</p>
-            </div>
-
-            <div class="login-form">
-                <div class="input-group">
-                    <label for="nisn"><i class="fas fa-id-card"></i> NISN</label>
-                    <input type="text" id="nisn" placeholder="Masukkan NISN" maxlength="10">
-                    <div class="input-hint">10 digit Nomor Induk Siswa Nasional</div>
-                </div>
-
-                <div class="input-group">
-                    <label for="password"><i class="fas fa-lock"></i> Password</label>
-                    <input type="password" id="password" placeholder="Masukkan password">
-                    <button type="button" class="toggle-password" id="toggle-password">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </div>
-
-                <div class="input-group">
-                    <label for="token"><i class="fas fa-key"></i> Token Ujian</label>
-                    <input type="text" id="token" placeholder="Masukkan token ujian">
-                    <div class="input-hint">Token dari pengampu ujian</div>
-                </div>
-
-                <div id="captcha-container" class="captcha-container">
-                    <div class="captcha-display" id="captcha-display"></div>
-                    <button type="button" class="captcha-refresh" id="captcha-refresh">
-                        <i class="fas fa-redo"></i>
-                    </button>
-                    <input type="text" id="captcha-input" placeholder="Masukkan kode di atas">
-                </div>
-
-                <div class="form-actions">
-                    <button id="btn-login" class="btn btn-primary">
-                        <i class="fas fa-sign-in-alt"></i> Masuk Ujian
-                    </button>
-                    <div class="security-notice">
-                        <i class="fas fa-shield-alt"></i>
-                        <span>Sistem dipantau untuk mencegah kecurangan</span>
-                    </div>
-                </div>
-
-                <div id="login-error" class="error-message"></div>
-            </div>
-
-            <div class="demo-credentials">
-                <h4><i class="fas fa-info-circle"></i> Demo Login:</h4>
-                <div class="credential-item">
-                    <strong>NISN:</strong> 1234567890
-                    <strong>Password:</strong> password123
-                    <strong>Token:</strong> ABC123
-                </div>
-                <div class="credential-item">
-                    <strong>NISN:</strong> 0987654321
-                    <strong>Password:</strong> test123
-                    <strong>Token:</strong> Sos1
-                </div>
-                <div class="credential-item">
-                    <strong>NISN:</strong> 1122334455
-                    <strong>Password:</strong> demo123
-                    <strong>Token:</strong> H646JV
-                </div>
-            </div>
+        <div id="loading-screen" style="display:none; text-align:center; padding: 50px 0;">
+            <div class="loader-spin"></div>
+            <h2 style="color: var(--primary);">Sedang Mengirim Jawaban...</h2>
+            <p>Mohon jangan menutup halaman atau menekan tombol kembali.</p>
+        </div>
+        <div id="success-screen" style="display:none; text-align:center; padding: 50px 0;">
+            <i class="fa fa-check-circle" style="font-size: 80px; color: var(--success);"></i>
+            <h1 style="color: var(--success); margin-top: 20px;">UJIAN SELESAI</h1>
+            <p style="font-size: 18px;">Terima kasih, jawaban dan nilai Anda telah berhasil disimpan di server.</p>
+            <button class="btn btn-blue" style="max-width:300px; margin-top: 30px;" onclick="location.reload()">KELUAR KE MENU LOGIN</button>
         </div>
     </div>
+    <div class="footnote">DEVELOPED BY DONNY NUGROHO © 2026</div>
+</div>
 
-    <!-- Panel Info Ujian -->
-    <div id="p-info" class="panel">
-        <div class="info-container">
-            <div class="info-header">
-                <h2><i class="fas fa-info-circle"></i> Konfirmasi Ujian</h2>
-                <p id="countdown">Memulai dalam: <span id="countdown-timer">5</span> detik</p>
-            </div>
+<script>
+    let u = {}, ex = {}, qs = [], ans = {}, cur = 0, fraud = 0, tIn, tInt, isLive = false, isSubmitting = false;
+    const id = (e) => document.getElementById(e);
 
-            <div class="info-content">
-                <div class="info-card student-info">
-                    <div class="info-icon">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div>
-                        <h3 id="student-name">-</h3>
-                        <p id="student-class">-</p>
-                    </div>
-                </div>
+    function showNotif(elId, msg, type) {
+        const el = id(elId); el.innerText = msg; el.style.display = 'block';
+        el.className = 'notif-bar ' + (type === 'error' ? 'notif-error' : 'notif-success');
+    }
 
-                <div class="info-grid">
-                    <div class="info-item">
-                        <i class="fas fa-book"></i>
-                        <div>
-                            <h4>Mata Pelajaran</h4>
-                            <p id="exam-subject">-</p>
-                        </div>
-                    </div>
-                    <div class="info-item">
-                        <i class="fas fa-chalkboard-teacher"></i>
-                        <div>
-                            <h4>Pengampu</h4>
-                            <p id="exam-teacher">-</p>
-                        </div>
-                    </div>
-                    <div class="info-item">
-                        <i class="fas fa-list-ol"></i>
-                        <div>
-                            <h4>Jumlah Soal</h4>
-                            <p id="exam-total">-</p>
-                        </div>
-                    </div>
-                    <div class="info-item">
-                        <i class="fas fa-clock"></i>
-                        <div>
-                            <h4>Durasi</h4>
-                            <p id="exam-duration">-</p>
-                        </div>
-                    </div>
-                </div>
+    function togglePass() { const p = id('pass'); p.type = p.type === 'password' ? 'text' : 'password'; }
 
-                <div class="warning-box">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <div>
-                        <h4>Peraturan Ujian</h4>
-                        <ul>
-                            <li>Dilarang menutup atau merefresh browser</li>
-                            <li>Dilarang membuka aplikasi lain selama ujian</li>
-                            <li>Jawaban otomatis tersimpan</li>
-                            <li>Sistem akan mencatat kecurangan</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+    async function login() {
+        id('btn-login').disabled = true;
+        const payload = { nisn: id('nisn').value, password: id('pass').value, token: id('token').value };
+        try {
+            const r = await fetch('https://cbt.donnyn1980.workers.dev/login', { method: 'POST', body: JSON.stringify(payload) });
+            const d = await r.json();
+            if(d.success) {
+                u = d.siswa; ex = d.infoUjian; ex.total = d.totalSoal;
+                id('p-login').classList.remove('active'); id('p-info').classList.add('active');
+                id('txt-sapa').innerText = `Halo, ${u.nama}`;
+                id('txt-detail').innerText = `MAPEL: ${ex.mapel}\nKELAS: ${u.kelas}\nJENJANG: ${u.jenjang}\nGURU: ${ex.nama_guru}\nSOAL: ${ex.total} Butir\nDURASI: ${ex.durasi} Menit`;
+            } else { showNotif('notif-login', 'Data login salah!', 'error'); id('btn-login').disabled = false; }
+        } catch (e) { showNotif('notif-login', 'Gangguan server!', 'error'); id('btn-login').disabled = false; }
+    }
 
-            <div class="info-actions">
-                <button id="btn-start-exam" class="btn btn-success">
-                    <i class="fas fa-play"></i> Mulai Ujian
-                </button>
-                <button id="btn-back-login" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Kembali
-                </button>
-            </div>
-        </div>
-    </div>
+    async function start() {
+        if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+        const r = await fetch(`https://cbt.donnyn1980.workers.dev/get-soal?token=${ex.token}`);
+        qs = await r.json(); tIn = new Date(); isLive = true;
+        id('p-info').classList.remove('active'); id('p-quiz').classList.add('active');
+        runTimer(ex.durasi * 60); render();
+    }
 
-    <!-- Panel Ujian -->
-    <div id="p-quiz" class="panel">
-        <div class="quiz-container">
-            <!-- Header Ujian -->
-            <div class="quiz-header">
-                <div class="quiz-timer">
-                    <i class="fas fa-clock"></i>
-                    <span id="timer">00:00</span>
-                </div>
-                <div class="quiz-title">
-                    <h3 id="current-subject">Ujian</h3>
-                </div>
-                <div class="quiz-controls">
-                    <button id="btn-mark-review" class="btn-icon" title="Tandai untuk review">
-                        <i class="far fa-flag"></i>
-                    </button>
-                    <button id="btn-fullscreen" class="btn-icon" title="Mode layar penuh">
-                        <i class="fas fa-expand"></i>
-                    </button>
-                    <div class="cheat-warning" id="cheat-warning" style="display: none;">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <span>Pantauan: <span id="cheat-count">0</span></span>
-                    </div>
-                </div>
-            </div>
+    document.addEventListener("visibilitychange", () => {
+        if (isLive && document.hidden) {
+            fraud++;
+            if(fraud >= 10) document.body.className = 'warn-r';
+            else if(fraud >= 5) document.body.className = 'warn-y';
+        }
+    });
 
-            <!-- Konten Utama -->
-            <div class="quiz-main">
-                <!-- Sidebar Navigasi Soal -->
-                <div class="quiz-sidebar">
-                    <h4>Navigasi Soal</h4>
-                    <div class="question-grid" id="question-grid">
-                        <!-- Grid nomor soal akan di-generate oleh JavaScript -->
-                    </div>
-                    <div class="sidebar-legend">
-                        <div class="legend-item">
-                            <div class="box now"></div>
-                            <span>Sedang dilihat</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="box answered"></div>
-                            <span>Terjawab</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="box marked"></div>
-                            <span>Ditandai</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="box unanswered"></div>
-                            <span>Belum dijawab</span>
-                        </div>
-                    </div>
-                    <div class="sidebar-stats">
-                        <p>Dijawab: <span id="answered-count">0</span>/<span id="total-count">0</span></p>
-                        <p>Ditandai: <span id="marked-count">0</span></p>
-                    </div>
-                </div>
+    function runTimer(sec) {
+        tInt = setInterval(() => {
+            let m = Math.floor(sec/60), s = sec%60;
+            id('timer').innerText = `SISA WAKTU: ${m}:${s<10?'0':''}${s}`;
+            if(--sec < 0) { clearInterval(tInt); submitJawaban(); }
+        }, 1000);
+    }
 
-                <!-- Area Soal -->
-                <div class="question-area">
-                    <div class="question-header">
-                        <h4 id="question-number">Soal #1</h4>
-                        <div class="question-status" id="question-status">
-                            <span class="status-badge">Belum dijawab</span>
-                        </div>
-                    </div>
+    function render() {
+        const s = qs[cur];
+        let h = `<div class="card">${s.st ? `<div class="stimulus">${s.st}</div>` : ''}`;
+        if(s.img && s.img !== "-") {
+            let imgUrl = s.img;
+            if(imgUrl.includes("drive.google.com")) {
+                const fId = imgUrl.match(/[-\w]{25,}/);
+                if(fId) imgUrl = `https://lh3.googleusercontent.com/u/0/d/${fId[0]}`;
+            }
+            h += `<img src="${imgUrl}" class="img-soal" onerror="this.src='https://placehold.co/600x400?text=Gambar+Drive+Error'">`;
+        }
+        h += `<div style="font-size:20px; line-height:1.6; margin-bottom:25px;"><b>Soal ${cur+1}:</b><br>${s.q}</div>`;
+        if(s.tp === 'Kategori') {
+            const baris = s.q.split(';');
+            h += `<table><tr><th>Kasus</th><th>${s.kat[0]}</th><th>${s.kat[1]}</th></tr>`;
+            baris.forEach((txt, i) => {
+                let curAnsArr = ans[s.id] ? ans[s.id].split(',') : new Array(baris.length).fill("");
+                h += `<tr><td style="text-align:left;">${txt}</td>
+                <td><input type="radio" name="k_${s.id}_${i}" value="A" ${curAnsArr[i]=='A'?'checked':''} onchange="saveKat(${s.id},${i},'A',${baris.length})"></td>
+                <td><input type="radio" name="k_${s.id}_${i}" value="B" ${curAnsArr[i]=='B'?'checked':''} onchange="saveKat(${s.id},${i},'B',${baris.length})"></td></tr>`;
+            });
+            h += `</table>`;
+        } else {
+            const typ = s.tp === 'MCMA' ? 'checkbox' : 'radio';
+            const curVal = (ans[s.id] || "").split(',');
+            s.opt.forEach(o => {
+                const isSelected = curVal.includes(o.orig);
+                h += `<label class="option-item ${isSelected?'selected-opt':''}">
+                    <input type="${typ}" name="q_${s.id}" value="${o.orig}" ${isSelected?'checked':''} onchange="saveAns(${s.id},'${s.tp}')" style="margin-right:15px; transform:scale(1.5);"> 
+                    <span style="font-size:17px;"><b>${o.label}.</b> ${o.text}</span>
+                </label>`;
+            });
+        }
+        id('display-soal').innerHTML = h + `</div>`;
+        updateGrid();
+    }
 
-                    <div class="question-content">
-                        <!-- Stimulus (jika ada) -->
-                        <div class="stimulus" id="stimulus" style="display: none;">
-                            <!-- Stimulus akan dimuat di sini -->
-                        </div>
+    window.saveAns = (id_soal, tipe) => {
+        const inputs = document.querySelectorAll(`input[name="q_${id_soal}"]:checked`);
+        const vals = Array.from(inputs).map(i => i.value);
+        if(vals.length > 0) ans[id_soal] = vals.sort().join(','); else delete ans[id_soal];
+        render();
+        if(tipe === 'Sederhana' && vals.length > 0) { setTimeout(() => { if(cur < qs.length - 1) move(1); }, 500); }
+    }
 
-                        <!-- Gambar (jika ada) -->
-                        <div class="question-image" id="question-image" style="display: none;">
-                            <!-- Gambar akan dimuat di sini -->
-                        </div>
+    window.saveKat = (id_soal, idx, val, total) => {
+        let a = (ans[id_soal] || "").split(',');
+        if(a.length !== total) a = new Array(total).fill("");
+        a[idx] = val; ans[id_soal] = a.join(',');
+        updateGrid();
+        if(a.every(x => x !== "")) { setTimeout(() => { if(cur < qs.length - 1) move(1); }, 500); }
+    }
 
-                        <!-- Soal -->
-                        <div class="question-text" id="question-text">
-                            <p>Memuat soal...</p>
-                        </div>
+    function updateGrid() {
+        const g = id('nav-grid'); g.innerHTML = '';
+        let countDone = 0;
+        qs.forEach((s, i) => {
+            let cls = 'box', statusDone = false;
+            if(ans[s.id]) {
+                if(s.tp === 'Kategori') {
+                    if(ans[s.id].split(',').filter(x => x !== "").length === s.q.split(';').length) statusDone = true;
+                } else { statusDone = true; }
+            }
+            if(statusDone) { cls += ' done'; countDone++; }
+            if(i === cur) cls += ' now';
+            g.innerHTML += `<div class="${cls}" onclick="cur=${i};render()">${i+1}</div>`;
+        });
+        id('area-finish').style.display = (countDone === qs.length) ? 'block' : 'none';
+        id('btn-next').style.display = (cur === qs.length - 1) ? 'none' : 'block';
+    }
 
-                        <!-- Pilihan Jawaban -->
-                        <div class="options" id="options">
-                            <!-- Opsi akan di-generate oleh JavaScript -->
-                        </div>
-                    </div>
+    window.move = (step) => { cur += step; if(cur<0) cur=0; if(cur>=qs.length) cur=qs.length-1; render(); }
 
-                    <div class="question-navigation">
-                        <button id="btn-prev" class="btn btn-secondary" disabled>
-                            <i class="fas fa-arrow-left"></i> Soal Sebelumnya
-                        </button>
-                        <button id="btn-next" class="btn btn-primary">
-                            Soal Berikutnya <i class="fas fa-arrow-right"></i>
-                        </button>
-                        <button id="btn-submit" class="btn btn-danger">
-                            <i class="fas fa-paper-plane"></i> Kirim Jawaban
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    async function submitJawaban() {
+        if(isSubmitting) return;
+        isSubmitting = true;
+        id('btn-finish').disabled = true;
+        id('quiz-content').style.display = 'none';
+        id('loading-screen').style.display = 'block';
+        id('timer').style.display = 'none';
 
-    <!-- Modal Konfirmasi Submit -->
-    <div id="submit-modal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-paper-plane"></i> Konfirmasi Pengumpulan</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="submit-summary">
-                    <p>Apakah Anda yakin ingin mengumpulkan jawaban?</p>
-                    <div class="summary-stats">
-                        <div class="stat-item">
-                            <span class="stat-label">Total Soal:</span>
-                            <span class="stat-value" id="modal-total">0</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Terjawab:</span>
-                            <span class="stat-value" id="modal-answered">0</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Ditandai:</span>
-                            <span class="stat-value" id="modal-marked">0</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Belum dijawab:</span>
-                            <span class="stat-value" id="modal-unanswered">0</span>
-                        </div>
-                    </div>
-                    <div class="warning-message">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <span>Setelah dikirim, Anda tidak dapat mengubah jawaban!</span>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button id="btn-confirm-submit" class="btn btn-danger">
-                    <i class="fas fa-check"></i> Ya, Kirim Sekarang
-                </button>
-                <button id="btn-cancel-submit" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Batal
-                </button>
-            </div>
-        </div>
-    </div>
+        clearInterval(tInt); isLive = false;
+        let tPK = 0, tPD = 0, tBF = 0, tS = 0;
+        const sorted = [...qs].sort((x, y) => x.id - y.id);
+        const logAns = sorted.map(q => {
+            const userA = ans[q.id] || "-";
+            const kuncis = q.key.split(',').map(k => k.trim());
+            const jawabans = userA.split(',').map(j => j.trim());
+            tPK += kuncis.length;
+            kuncis.forEach(k => { if(jawabans.includes(k)) tPD++; });
+            if(userA.replace(/\s/g,'') === q.key.replace(/\s/g,'')) tBF++; else tS++;
+            return userA;
+        }).join('|');
+        
+        const tOut = new Date();
+        const body = {
+            nisn: String(u.nisn), nama: u.nama, nama_guru: ex.nama_guru, mapel: ex.mapel, kelas: u.kelas, jenjang: u.jenjang,
+            nilai: ((tPD / tPK) * 100).toFixed(2), jml_curang: fraud, jml_benar: tBF, jml_salah: tS,
+            wkt_masuk: tIn.toLocaleString('id-ID'), wkt_submit: tOut.toLocaleString('id-ID'),
+            wkt_digunakan: `${Math.floor((tOut-tIn)/60000)} Menit`, jawaban: logAns
+        };
 
-    <!-- Toast Notification -->
-    <div id="toast" class="toast"></div>
-
-    <script src="script.js"></script>
+        try {
+            const res = await fetch('https://cbt.donnyn1980.workers.dev/submit', {
+                method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)
+            });
+            if(res.ok) {
+                id('loading-screen').style.display = 'none';
+                id('success-screen').style.display = 'block';
+            } else {
+                id('loading-screen').style.display = 'none';
+                id('quiz-content').style.display = 'block';
+                id('btn-finish').disabled = false; isSubmitting = false;
+                showNotif('notif-quiz', 'Database menolak data. Coba lagi!', 'error');
+            }
+        } catch(e) {
+            id('loading-screen').style.display = 'none';
+            id('quiz-content').style.display = 'block';
+            id('btn-finish').disabled = false; isSubmitting = false;
+            showNotif('notif-quiz', 'Kesalahan jaringan!', 'error');
+        }
+    }
+</script>
 </body>
 </html>
