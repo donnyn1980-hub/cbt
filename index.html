@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SISTEM UJIAN CBT SNIPER PRO</title>
+    <title>CBT Sniper Pro - Final System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -11,71 +11,47 @@
 
     <div id="loader" class="loader-overlay">
         <div class="loader-content">
-            <i class="fas fa-spinner fa-pulse"></i>
-            <p id="loader-text">Sinkronisasi Database...</p>
+            <i class="fas fa-spinner fa-spin fa-3x"></i>
+            <p>Sinkronisasi Database...</p>
         </div>
     </div>
 
     <section id="p-login" class="page active">
-        <div class="login-wrapper">
-            <div class="login-box">
-                <div class="login-header">
-                    <i class="fas fa-graduation-cap"></i>
-                    <h1>LOGIN SISWA</h1>
-                </div>
-                <div class="login-body">
-                    <div class="f-group">
-                        <label>Nomor Induk Siswa (NISN)</label>
-                        <input type="text" id="nisn" placeholder="Masukkan NISN Anda" autocomplete="off">
-                    </div>
-                    <div class="f-group">
-                        <label>Kata Sandi</label>
-                        <input type="password" id="pass" placeholder="******">
-                    </div>
-                    <div class="f-group">
-                        <label>Token Ujian</label>
-                        <input type="text" id="token" placeholder="6 Karakter Unik" style="text-transform: uppercase;">
-                    </div>
-                    <button class="btn-main" onclick="handleLogin()">VERIFIKASI MASUK</button>
-                </div>
+        <div class="login-container">
+            <div class="card login-card">
+                <h2 style="text-align:center; color: var(--primary)">CBT LOGIN</h2>
+                <div class="input-group">
+                    <input type="text" id="nisn" placeholder="Masukkan NISN" autocomplete="off"> </div>
+                <div class="input-group">
+                    <input type="password" id="pass" placeholder="Masukkan Password"> </div>
+                <div class="input-group">
+                    <input type="text" id="token" placeholder="Masukkan Token Ujian"> </div>
+                <button class="btn btn-blue" onclick="login()">VERIFIKASI MASUK</button>
             </div>
         </div>
     </section>
 
     <section id="p-info" class="page">
         <div class="container-narrow">
-            <div class="card shadow">
-                <div class="card-body" id="info-render-area">
-                    </div>
-                <div class="card-footer">
-                    <button class="btn-start" onclick="fetchSoalAndStart()">KONFIRMASI & MULAI UJIAN</button>
-                    <button class="btn-cancel" onclick="location.reload()">BATAL</button>
-                </div>
+            <div class="card">
+                <div id="info-render-area"></div> 
+                <button class="btn btn-blue" onclick="start()">MULAI UJIAN SEKARANG</button>
             </div>
         </div>
     </section>
 
-    <section id="p-quiz" class="page">
-        <nav class="quiz-nav">
-            <div class="timer-display" id="timer">--:--:--</div>
-            <div class="user-info">
-                <span id="user-display-name">Guest</span> | <span id="user-display-kelas">Class</span>
+    <section id="p-quiz" class="page" style="padding:0">
+        <div id="timer">SISA WAKTU: --:--</div> <div class="quiz-wrapper">
+            <div class="grid" id="nav-grid"></div>
+            
+            <div id="display-soal"></div>
+            
+            <div class="nav-controls">
+                <button class="btn btn-gray" onclick="move(-1)">KEMBALI</button>
+                <button id="btn-next" class="btn btn-blue" onclick="move(1)">SELANJUTNYA</button>
             </div>
-        </nav>
-
-        <div class="quiz-container">
-            <aside class="quiz-aside">
-                <h3>DAFTAR SOAL</h3>
-                <div id="nav-grid" class="nav-grid"></div>
-            </aside>
-
-            <main class="quiz-main">
-                <div id="display-soal" class="question-wrapper"></div>
-                <div class="navigation-controls">
-                    <button id="btn-prev" class="btn-nav" onclick="goPrev()">SOAL SEBELUMNYA</button>
-                    <button id="btn-next" class="btn-nav btn-primary" onclick="goNext()">SOAL SELANJUTNYA</button>
-                </div>
-            </main>
+            
+            <button id="btn-finish" class="btn btn-success" style="display:none; margin-top: 15px;" onclick="preFinish()">KIRIM SEMUA JAWABAN</button>
         </div>
     </section>
 
