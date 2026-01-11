@@ -6,6 +6,7 @@
     <title>UJIAN DARING</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* CSS ASLI TANPA PERUBAHAN */
         :root { --primary: #1a73e8; --secondary: #5f6368; --success: #188038; --danger: #d93025; --warning: #f9ab00; --bg: #f1f3f4; }
         body { font-family: 'Google Sans', Roboto, Arial, sans-serif; margin: 0; background: var(--bg); user-select: none; color: #3c4043; transition: background 0.3s; }
         .page { display: none; min-height: 100vh; padding: 20px; box-sizing: border-box; }
@@ -46,7 +47,6 @@
         .loader-spin { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .footnote { text-align: center; color: #70757a; font-size: 14px; margin-top: 40px; padding-bottom: 40px; font-weight: 500; border-top: 1px solid #dadce0; padding-top: 20px; }
-        
         .detail-grid { display: grid; grid-template-columns: 100px 20px 1fr; gap: 5px; margin-bottom: 5px; font-weight: bold; }
         .detail-grid .colon { text-align: center; color: var(--primary); }
         .login-logo { height: 48px; width: auto; margin-bottom: 10px; }
@@ -114,7 +114,7 @@
         <div id="success-screen" style="display:none; text-align:center; padding: 60px 20px;">
             <i class="fa fa-check-circle" style="font-size: 80px; color: var(--success);"></i>
             <h1 style="color: #202124; margin-top: 25px;">BERHASIL TERKIRIM!</h1>
-            <p id="success-msg" style="line-height: 1.6; color: var(--secondary); margin-bottom: 25px; font-size: 18px;"></p>
+            <p id="success-msg" style="font-size: 18px; line-height: 1.6; color: var(--secondary); margin-bottom: 25px;"></p>
             <div style="background: #e8f0fe; padding: 15px; border-radius: 8px; font-weight: 500; color: #1967d2; margin-bottom: 20px;">
                 Tunjukkan teks ini kepada Pengawas untuk meninggalkan Ruangan.
             </div>
@@ -125,6 +125,7 @@
 </div>
 
 <script>
+    /* JAVASCRIPT ASLI DENGAN PENAMBAHAN SORTING ROWID */
     let u = {}, ex = {}, qs = [], ans = {}, cur = 0, fraud = 0, tIn, tInt, isLive = false, isSubmitting = false;
     const id = (e) => document.getElementById(e);
 
@@ -290,7 +291,7 @@
         let totalPoinMaksimal = 0;
         let tBF = 0, tS = 0;
 
-        // --- SISTEM PENGURUTAN BERDASARKAN ROWID DATABASE ---
+        // --- SORTING BERDASARKAN ROWID DATABASE ---
         const sorted = [...qs].sort((x, y) => x.id - y.id);
         const logAns = sorted.map(q => {
             const userA = (ans[q.id] || "-").replace(/\s/g,'');
@@ -306,25 +307,19 @@
             }
 
             totalPoinMaksimal += bobotSoal;
-
-            if(userA === kunci) {
-                totalPoinBenar += bobotSoal;
-                tBF++;
-            } else {
-                tS++;
-            }
+            if(userA === kunci) { totalPoinBenar += bobotSoal; tBF++; } else { tS++; }
             return ans[q.id] || "-";
         }).join('|');
         
         const finalNilai = totalPoinMaksimal > 0 ? ((totalPoinBenar / totalPoinMaksimal) * 100).toFixed(2) : 0;
         const tOut = new Date();
-        const durasiPakai = Math.floor((tOut - new Date(tIn)) / 60000);
+        const durasiMenit = Math.floor((tOut - new Date(tIn)) / 60000);
         
         const body = {
             nisn: String(u.nisn), nama: u.nama, nama_guru: ex.nama_guru, mapel: ex.mapel, kelas: u.kelas, jenjang: u.jenjang,
             nilai: finalNilai, jml_curang: fraud, jml_benar: tBF, jml_salah: tS,
             wkt_masuk: new Date(tIn).toLocaleString('id-ID'), wkt_submit: tOut.toLocaleString('id-ID'),
-            wkt_digunakan: `${durasiPakai} Menit`, jawaban: logAns
+            wkt_digunakan: `${durasiMenit} Menit`, jawaban: logAns
         };
 
         try {
@@ -333,8 +328,7 @@
             });
             if(res.ok) {
                 // UPDATE PESAN SUKSES SESUAI PERMINTAAN
-                id('success-msg').innerHTML = `Selamat <b>${u.nama} (${u.kelas})</b>, Anda telah menyelesaikan ujian <b>${ex.mapel}</b> dengan durasi <b>${durasiPakai} menit</b>. Semoga mendapatkan hasil yang terbaik.`;
-                
+                id('success-msg').innerHTML = `Selamat <b>${u.nama} (${u.kelas})</b>, Anda telah menyelesaikan ujian <b>${ex.mapel}</b> dengan durasi <b>${durasiMenit} menit</b>. Semoga mendapatkan hasil yang terbaik.`;
                 localStorage.removeItem('cbt_session');
                 id('loading-screen').style.display = 'none'; id('success-screen').style.display = 'block';
             } else { throw new Error(); }
