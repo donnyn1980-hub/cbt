@@ -47,9 +47,10 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .footnote { text-align: center; color: #70757a; font-size: 14px; margin-top: 40px; padding-bottom: 40px; font-weight: 500; border-top: 1px solid #dadce0; padding-top: 20px; }
         
+        /* Simetris Detail Styles */
         .detail-grid { display: grid; grid-template-columns: 100px 20px 1fr; gap: 5px; margin-bottom: 5px; font-weight: bold; }
         .detail-grid .colon { text-align: center; color: var(--primary); }
-        .main-logo { display: block; width: 120px; height: auto; margin: 0 auto 15px auto; }
+        .login-logo { height: 48px; width: auto; margin-bottom: 10px; }
     </style>
 </head>
 <body oncontextmenu="return false;" onload="checkSession()">
@@ -57,9 +58,8 @@
 <div id="p-login" class="page active">
     <div class="card" style="max-width:480px; margin: 80px auto;">
         <div style="text-align:center; margin-bottom: 30px;">
-            <img src="logo.png" alt="Logo" class="main-logo" onerror="this.style.display='none'">
-            <i class="fa fa-graduation-cap" style="font-size: 48px; color: var(--primary);"></i>
-            <h2 style="color: #202124; margin-top: 15px;">LOGIN PESERTA UJIAN</h2>
+            <img src="logo.png" alt="Logo" class="login-logo" onerror="this.src='https://placehold.co/48x48?text=Logo'">
+            <h2 style="color: #202124; margin-top: 10px;">LOGIN PESERTA UJIAN</h2>
         </div>
         <div id="notif-login" class="notif-bar"></div>
         <div class="input-group">
@@ -88,7 +88,7 @@
         <h3 id="txt-sapa" style="color: var(--primary); margin-top: 0;"></h3>
         <p style="font-size: 16px; margin-bottom: 15px; color: #3c4043;">Anda akan mengerjakan ujian dengan rincian sebagai berikut :</p>
         <div id="txt-detail-container" style="background: #e8f0fe; padding: 25px; border-radius: 8px; margin: 20px 0;">
-        </div>
+            </div>
         <button class="btn btn-blue" onclick="start()">KONFIRMASI & MULAI SEKARANG</button>
     </div>
     <div class="footnote">DEVELOPED BY DONNY NUGROHO © 2026</div>
@@ -224,7 +224,7 @@
             let imgUrl = s.img;
             if(imgUrl.includes("drive.google.com")) {
                 const fId = imgUrl.match(/[-\w]{25,}/);
-                if(fId) imgUrl = `https://lh3.googleusercontent.com/d/$${fId[0]}`;
+                if(fId) imgUrl = `https://lh3.googleusercontent.com/d/${fId[0]}`;
             }
             h += `<img src="${imgUrl}" class="img-soal" onerror="this.src='https://placehold.co/800x400?text=Gambar+Drive+Error'">`;
         }
