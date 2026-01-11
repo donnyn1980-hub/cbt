@@ -6,7 +6,6 @@
     <title>UJIAN DARING</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* CSS ASLI TANPA PERUBAHAN */
         :root { --primary: #1a73e8; --secondary: #5f6368; --success: #188038; --danger: #d93025; --warning: #f9ab00; --bg: #f1f3f4; }
         body { font-family: 'Google Sans', Roboto, Arial, sans-serif; margin: 0; background: var(--bg); user-select: none; color: #3c4043; transition: background 0.3s; }
         .page { display: none; min-height: 100vh; padding: 20px; box-sizing: border-box; }
@@ -125,7 +124,6 @@
 </div>
 
 <script>
-    /* JAVASCRIPT ASLI DENGAN PENAMBAHAN SORTING ROWID */
     let u = {}, ex = {}, qs = [], ans = {}, cur = 0, fraud = 0, tIn, tInt, isLive = false, isSubmitting = false;
     const id = (e) => document.getElementById(e);
 
@@ -213,7 +211,7 @@
             let imgUrl = s.img;
             if(imgUrl.includes("drive.google.com")) {
                 const fId = imgUrl.match(/[-\w]{25,}/);
-                if(fId) imgUrl = `https://lh3.googleusercontent.com/u/0/d/${fId[0]}`;
+                if(fId) imgUrl = `https://lh3.googleusercontent.com/d/${fId[0]}`;
             }
             h += `<img src="${imgUrl}" class="img-soal" onerror="this.src='https://placehold.co/800x400?text=Gambar+Drive+Error'">`;
         }
@@ -291,7 +289,7 @@
         let totalPoinMaksimal = 0;
         let tBF = 0, tS = 0;
 
-        // --- SORTING BERDASARKAN ROWID DATABASE ---
+        // Sorting Berdasarkan No (ID) agar jawaban di DB urut
         const sorted = [...qs].sort((x, y) => x.id - y.id);
         const logAns = sorted.map(q => {
             const userA = (ans[q.id] || "-").replace(/\s/g,'');
@@ -327,7 +325,6 @@
                 method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)
             });
             if(res.ok) {
-                // UPDATE PESAN SUKSES SESUAI PERMINTAAN
                 id('success-msg').innerHTML = `Selamat <b>${u.nama} (${u.kelas})</b>, Anda telah menyelesaikan ujian <b>${ex.mapel}</b> dengan durasi <b>${durasiMenit} menit</b>. Semoga mendapatkan hasil yang terbaik.`;
                 localStorage.removeItem('cbt_session');
                 id('loading-screen').style.display = 'none'; id('success-screen').style.display = 'block';
