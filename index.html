@@ -1,341 +1,91 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UJIAN DARING</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root { --primary: #1a73e8; --secondary: #5f6368; --success: #188038; --danger: #d93025; --warning: #f9ab00; --bg: #f1f3f4; }
-        body { font-family: 'Google Sans', Roboto, Arial, sans-serif; margin: 0; background: var(--bg); user-select: none; color: #3c4043; transition: background 0.3s; }
-        .page { display: none; min-height: 100vh; padding: 20px; box-sizing: border-box; }
-        .active { display: block; }
-        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); margin-bottom: 20px; border-top: 8px solid var(--primary); position: relative; }
-        .input-group { position: relative; margin-bottom: 25px; }
-        .input-group label { display: block; margin-bottom: 10px; font-weight: 500; color: #202124; }
-        .input-group i { position: absolute; left: 15px; top: 42px; color: var(--primary); font-size: 18px; }
-        .input-group input { width: 100%; padding: 14px 15px 14px 45px; border: 1px solid #dadce0; border-radius: 8px; font-size: 16px; box-sizing: border-box; transition: all 0.3s; }
-        .input-group input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 2px rgba(26,115,232,0.2); }
-        .toggle-pass { position: absolute; right: 15px; top: 42px; cursor: pointer; color: var(--secondary); padding: 5px; z-index: 10; }
-        #timer { position: sticky; top: 0; background: #202124; color: white; text-align: center; padding: 15px; font-weight: bold; z-index: 1000; font-size: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border-bottom: 3px solid var(--warning); letter-spacing: 1px; }
-        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 20px 0; padding: 10px; background: #fff; border-radius: 10px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
-        @media (min-width: 600px) { .grid { grid-template-columns: repeat(10, 1fr); } }
-        .box { padding: 15px 5px; background: #fff; border: 2px solid #dadce0; border-radius: 8px; text-align: center; cursor: pointer; font-size: 15px; font-weight: bold; transition: 0.2s; color: #5f6368; }
-        .box.done { background: var(--success); color: white; border-color: var(--success); }
-        .box.now { background: var(--warning); border-color: #202124; color: #202124; transform: scale(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
-        .stimulus { background: #f8f9fa; padding: 25px; border-left: 8px solid var(--primary); margin-bottom: 25px; font-style: normal; border-radius: 4px; line-height: 1.8; color: #3c4043; border: 1px solid #eee; }
-        .option-item { display: flex; align-items: center; padding: 18px; border: 2px solid #dadce0; border-radius: 12px; margin-bottom: 15px; cursor: pointer; transition: 0.2s; background: #fff; position: relative; }
-        .option-item:hover { background: #f7f8f8; border-color: #bdc1c6; }
-        .selected-opt { border-color: var(--primary) !important; background: #e8f0fe !important; font-weight: bold; color: var(--primary); }
-        .selected-opt::after { content: '\f058'; font-family: 'Font Awesome 5 Free'; font-weight: 900; position: absolute; right: 20px; font-size: 20px; }
-        .img-soal { display: block; width: 100%; max-width: 100%; height: auto; margin: 0 auto 25px auto; border-radius: 8px; border: 1px solid #dadce0; background: #fff; padding: 5px; box-sizing: border-box; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; border-radius: 8px; overflow: hidden; box-shadow: 0 0 0 1px #dadce0; }
-        th, td { border: 1px solid #dadce0; padding: 18px; text-align: center; }
-        th { background: #f8f9fa; font-weight: 600; color: #202124; }
-        .warn-y { animation: blink-yellow 1.5s infinite; }
-        .warn-r { animation: blink-red 0.6s infinite; }
-        @keyframes blink-yellow { 0%, 100% { background: #ffffff; } 50% { background: #fff3cd; } }
-        @keyframes blink-red { 0%, 100% { background: #ffffff; } 50% { background: #f8d7da; } }
-        .notif-bar { display: none; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; border: 1px solid transparent; }
-        .notif-error { display: block; background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
-        .notif-success { display: block; background: #d4edda; color: #155724; border-color: #c3e6cb; }
-        .btn { width: 100%; padding: 18px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s ease; text-transform: uppercase; letter-spacing: 1.2px; }
-        .btn-blue { background: var(--primary); color: white; }
-        .btn-gray { background: #fff; color: #5f6368; border: 1px solid #dadce0; }
-        .btn:disabled { background: #dadce0 !important; color: #9aa0a6 !important; cursor: not-allowed; }
-        .loader-spin { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .footnote { text-align: center; color: #70757a; font-size: 14px; margin-top: 40px; padding-bottom: 40px; font-weight: 500; border-top: 1px solid #dadce0; padding-top: 20px; }
-        
-        .detail-grid { display: grid; grid-template-columns: 100px 20px 1fr; gap: 5px; margin-bottom: 5px; font-weight: bold; }
-        .detail-grid .colon { text-align: center; color: var(--primary); }
-        .login-logo { height: 48px; width: auto; margin-bottom: 10px; }
-    </style>
-</head>
-<body oncontextmenu="return false;" onload="checkSession()">
-
-<div id="p-login" class="page active">
-    <div class="card" style="max-width:480px; margin: 80px auto;">
-        <div style="text-align:center; margin-bottom: 30px;">
-            <img src="logo.png" alt="Logo" class="login-logo" onerror="this.src='https://placehold.co/48x48?text=Logo'">
-            <h2 style="color: #202124; margin-top: 10px;">LOGIN PESERTA UJIAN</h2>
-        </div>
-        <div id="notif-login" class="notif-bar"></div>
-        <div class="input-group">
-            <label>Nomor Induk Siswa Nasional (NISN)</label>
-            <i class="fa fa-user-circle"></i>
-            <input type="text" id="nisn" placeholder="Masukkan NISN">
-        </div>
-        <div class="input-group">
-            <label>Kata Sandi Akun</label>
-            <i class="fa fa-lock"></i>
-            <input type="password" id="pass" placeholder="Masukkan Password">
-            <i class="fa fa-eye toggle-pass" onclick="togglePass()"></i>
-        </div>
-        <div class="input-group">
-            <label>Token Sesi Ujian</label>
-            <i class="fa fa-ticket-alt"></i>
-            <input type="text" id="token" placeholder="Masukkan Token">
-        </div>
-        <button class="btn btn-blue" id="btn-login" onclick="login()">OTENTIKASI MASUK</button>
-    </div>
-    <div class="footnote">DEVELOPED BY DONNY NUGROHO © 2026</div>
-</div>
-
-<div id="p-info" class="page">
-    <div class="card" style="max-width:700px; margin: auto;">
-        <h3 id="txt-sapa" style="color: var(--primary); margin-top: 0;"></h3>
-        <p style="font-size: 16px; margin-bottom: 15px; color: #3c4043;">Anda akan mengerjakan ujian dengan rincian sebagai berikut :</p>
-        <div id="txt-detail-container" style="background: #e8f0fe; padding: 25px; border-radius: 8px; margin: 20px 0;"></div>
-        <button class="btn btn-blue" onclick="start()">KONFIRMASI & MULAI SEKARANG</button>
-    </div>
-    <div class="footnote">DEVELOPED BY DONNY NUGROHO © 2026</div>
-</div>
-
-<div id="p-quiz" class="page" style="padding:0">
-    <div id="timer">SISA WAKTU: --:--</div>
-    <div class="container" style="padding:20px; max-width: 900px; margin: auto;">
-        <div id="notif-quiz" class="notif-bar"></div>
-        <div id="quiz-content">
-            <div class="grid" id="nav-grid"></div>
-            <div id="display-soal"></div>
-            <div style="display:flex; gap:20px; margin-top: 25px;">
-                <button class="btn btn-gray" style="flex:1" onclick="move(-1)"><i class="fa fa-arrow-left"></i> SEBELUMNYA</button>
-                <button id="btn-next" class="btn btn-blue" style="flex:1" onclick="move(1)">SELANJUTNYA <i class="fa fa-arrow-right"></i></button>
-            </div>
-            <div id="area-finish" style="display:none; margin-top: 25px;">
-                <button id="btn-finish" class="btn" style="background:var(--success); color:white; font-size: 18px;" onclick="submitJawaban()"><i class="fa fa-paper-plane"></i> SELESAI & KIRIM JAWABAN</button>
-            </div>
-        </div>
-        <div id="loading-screen" style="display:none; text-align:center; padding: 60px 20px;">
-            <div class="loader-spin"></div>
-            <h2 style="color: var(--primary);">Memproses Pengiriman...</h2>
-        </div>
-        <div id="success-screen" style="display:none; text-align:center; padding: 60px 20px;">
-            <i class="fa fa-check-circle" style="font-size: 80px; color: var(--success);"></i>
-            <h1 style="color: #202124; margin-top: 25px;">BERHASIL TERKIRIM!</h1>
-            <button class="btn btn-blue" style="max-width:300px; margin-top: 30px;" onclick="exitQuiz()">KEMBALI KE HALAMAN LOGIN</button>
+<div id="success-screen" class="page">
+    <div class="card" style="text-align: center;">
+        <i class="fas fa-check-circle" style="font-size: 64px; color: var(--success); margin-bottom: 20px;"></i>
+        <h2 id="success-title">Jawaban Berhasil Terkirim</h2>
+        <p id="success-message" style="line-height: 1.6; color: var(--secondary); margin-bottom: 25px;"></p>
+        <div style="background: #e8f0fe; padding: 15px; border-radius: 8px; font-weight: 500; color: #1967d2;">
+            Tunjukkan teks ini kepada Pengawas untuk meninggalkan Ruangan.
         </div>
     </div>
-    <div class="footnote">DEVELOPED BY DONNY NUGROHO © 2026</div>
 </div>
 
 <script>
-    let u = {}, ex = {}, qs = [], ans = {}, cur = 0, fraud = 0, tIn, tInt, isLive = false, isSubmitting = false;
-    const id = (e) => document.getElementById(e);
+    // ... (kode lainnya tetap sama) ...
 
-    function showNotif(elId, msg, type) {
-        const el = id(elId); el.innerText = msg; el.style.display = 'block';
-        el.className = 'notif-bar ' + (type === 'error' ? 'notif-error' : 'notif-success');
-    }
+    async function submitUjian() {
+        if (!confirm('Yakin ingin mengakhiri ujian?')) return;
+        id('loading-screen').style.display = 'flex';
 
-    function togglePass() { const p = id('pass'); p.type = p.type === 'password' ? 'text' : 'password'; }
-
-    async function checkSession() {
-        const saved = localStorage.getItem('cbt_session');
-        if (saved) {
-            const data = JSON.parse(saved);
-            u = data.u; ex = data.ex; qs = data.qs; ans = data.ans || {};
-            fraud = data.fraud || 0; cur = data.cur || 0;
-            const startTime = new Date(data.tIn);
-            const now = new Date();
-            const elapsed = Math.floor((now - startTime) / 1000);
-            const remaining = (ex.durasi * 60) - elapsed;
-            if (remaining > 0) {
-                tIn = startTime; id('p-login').classList.remove('active'); id('p-quiz').classList.add('active');
-                isLive = true; applyBlink(); runTimer(remaining); render();
-            } else { localStorage.removeItem('cbt_session'); }
-        }
-    }
-
-    function saveSession() {
-        if (isLive) { localStorage.setItem('cbt_session', JSON.stringify({ u, ex, qs, ans, fraud, cur, tIn })); }
-    }
-
-    async function login() {
-        id('btn-login').disabled = true;
-        const payload = { nisn: id('nisn').value, password: id('pass').value, token: id('token').value };
-        try {
-            const r = await fetch('https://cbt.donnyn1980.workers.dev/login', { method: 'POST', body: JSON.stringify(payload) });
-            const d = await r.json();
-            if(d.success) {
-                u = d.siswa; ex = d.infoUjian; ex.total = d.totalSoal;
-                id('p-login').classList.remove('active'); id('p-info').classList.add('active');
-                id('txt-sapa').innerText = `Selamat Datang, ${u.nama} (${u.kelas})`;
-                const detailHtml = `
-                    <div class="detail-grid"><span>MAPEL</span><span class="colon">:</span><span>${ex.mapel}</span></div>
-                    <div class="detail-grid"><span>KELAS</span><span class="colon">:</span><span>${u.kelas}</span></div>
-                    <div class="detail-grid"><span>JENJANG</span><span class="colon">:</span><span>${u.jenjang}</span></div>
-                    <div class="detail-grid"><span>GURU</span><span class="colon">:</span><span>${ex.nama_guru}</span></div>
-                    <div class="detail-grid"><span>SOAL</span><span class="colon">:</span><span>${ex.total} Butir</span></div>
-                    <div class="detail-grid"><span>DURASI</span><span class="colon">:</span><span>${ex.durasi} Menit</span></div>
-                `;
-                id('txt-detail-container').innerHTML = detailHtml;
-            } else { showNotif('notif-login', 'NISN/Password/Token Salah!', 'error'); id('btn-login').disabled = false; }
-        } catch (e) { showNotif('notif-login', 'Gangguan Server!', 'error'); id('btn-login').disabled = false; }
-    }
-
-    async function start() {
-        if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
-        const r = await fetch(`https://cbt.donnyn1980.workers.dev/get-soal?token=${ex.token}`);
-        qs = await r.json(); tIn = new Date(); isLive = true;
-        saveSession();
-        id('p-info').classList.remove('active'); id('p-quiz').classList.add('active');
-        runTimer(ex.durasi * 60); render();
-    }
-
-    document.addEventListener("visibilitychange", () => {
-        if (isLive && document.hidden) { fraud++; applyBlink(); saveSession(); }
-    });
-
-    function applyBlink() {
-        if(fraud >= 10) document.body.className = 'warn-r';
-        else if(fraud >= 5) document.body.className = 'warn-y';
-    }
-
-    function runTimer(sec) {
-        tInt = setInterval(() => {
-            let m = Math.floor(sec/60), s = sec%60;
-            id('timer').innerText = `SISA WAKTU: ${m}:${s<10?'0':''}${s}`;
-            if(--sec < 0) { clearInterval(tInt); submitJawaban(); }
-        }, 1000);
-    }
-
-    function render() {
-        const s = qs[cur];
-        let h = `<div class="card">${s.st ? `<div class="stimulus">${s.st}</div>` : ''}`;
-        if(s.img && s.img !== "-") {
-            let imgUrl = s.img;
-            if(imgUrl.includes("drive.google.com")) {
-                const fId = imgUrl.match(/[-\w]{25,}/);
-                if(fId) imgUrl = `https://lh3.googleusercontent.com/d/${fId[0]}`;
-            }
-            h += `<img src="${imgUrl}" class="img-soal" onerror="this.src='https://placehold.co/800x400?text=Gambar+Drive+Error'">`;
-        }
-        h += `<div style="font-size:20px; line-height:1.6; margin-bottom:25px;"><b>Soal ${cur+1}:</b><br>${s.q}</div>`;
-        if(s.tp === 'Kategori') {
-            const baris = s.q.split(';');
-            h += `<table><tr><th>Kasus</th><th>${s.kat[0]}</th><th>${s.kat[1]}</th></tr>`;
-            baris.forEach((txt, i) => {
-                let curAnsArr = ans[s.id] ? ans[s.id].split(',') : new Array(baris.length).fill("");
-                h += `<tr><td style="text-align:left;">${txt}</td>
-                <td><input type="radio" name="k_${s.id}_${i}" value="A" ${curAnsArr[i]=='A'?'checked':''} onchange="saveKat(${s.id},${i},'A',${baris.length})"></td>
-                <td><input type="radio" name="k_${s.id}_${i}" value="B" ${curAnsArr[i]=='B'?'checked':''} onchange="saveKat(${s.id},${i},'B',${baris.length})"></td></tr>`;
-            });
-            h += `</table>`;
-        } else {
-            const typ = s.tp === 'MCMA' ? 'checkbox' : 'radio';
-            const curVal = (ans[s.id] || "").split(',');
-            s.opt.forEach(o => {
-                const isSelected = curVal.includes(o.orig);
-                h += `<label class="option-item ${isSelected?'selected-opt':''}">
-                    <input type="${typ}" name="q_${s.id}" value="${o.orig}" ${isSelected?'checked':''} onchange="saveAns(${s.id},'${s.tp}')" style="margin-right:15px; transform:scale(1.5);"> 
-                    <span style="font-size:17px;"><b>${o.label}.</b> ${o.text}</span>
-                </label>`;
-            });
-        }
-        id('display-soal').innerHTML = h + `</div>`;
-        updateGrid();
-    }
-
-    window.saveAns = (id_soal, tipe) => {
-        const inputs = document.querySelectorAll(`input[name="q_${id_soal}"]:checked`);
-        const vals = Array.from(inputs).map(i => i.value);
-        if(vals.length > 0) ans[id_soal] = vals.sort().join(','); else delete ans[id_soal];
-        saveSession(); render();
-        if(tipe === 'Sederhana' && vals.length > 0) { setTimeout(() => { if(cur < qs.length - 1) move(1); }, 400); }
-    }
-
-    window.saveKat = (id_soal, idx, val, total) => {
-        let a = (ans[id_soal] || "").split(',');
-        if(a.length !== total) a = new Array(total).fill("");
-        a[idx] = val; ans[id_soal] = a.join(',');
-        saveSession(); updateGrid();
-        if(a.every(x => x !== "")) { setTimeout(() => { if(cur < qs.length - 1) move(1); }, 400); }
-    }
-
-    function updateGrid() {
-        const g = id('nav-grid'); g.innerHTML = '';
-        let countDone = 0;
-        qs.forEach((s, i) => {
-            let cls = 'box', statusDone = false;
-            if(ans[s.id]) {
-                if(s.tp === 'Kategori') { if(ans[s.id].split(',').filter(x => x !== "").length === s.q.split(';').length) statusDone = true; } 
-                else { statusDone = true; }
-            }
-            if(statusDone) { cls += ' done'; countDone++; }
-            if(i === cur) cls += ' now';
-            g.innerHTML += `<div class="${cls}" onclick="cur=${i};render();saveSession()">${i+1}</div>`;
-        });
-        id('area-finish').style.display = (countDone === qs.length) ? 'block' : 'none';
-        id('btn-next').style.display = (cur === qs.length - 1) ? 'none' : 'block';
-    }
-
-    window.move = (step) => { cur += step; if(cur<0) cur=0; if(cur>=qs.length) cur=qs.length-1; saveSession(); render(); }
-
-    function exitQuiz() { localStorage.removeItem('cbt_session'); location.reload(); }
-
-    async function submitJawaban() {
-        if(isSubmitting) return;
-        isSubmitting = true;
-        id('btn-finish').disabled = true; id('quiz-content').style.display = 'none';
-        id('loading-screen').style.display = 'block'; id('timer').style.display = 'none';
-        clearInterval(tInt); isLive = false;
+        // LOGIKA BARU: Mengurutkan jawaban berdasarkan rowid agar tertata di kolom database
+        // questions adalah array soal yang kita miliki
+        const sortedQuestions = [...questions].sort((a, b) => a.id - b.id);
+        
+        const logAns = sortedQuestions.map(q => {
+            const j = ans[q.id];
+            if (!j) return "-";
+            return Array.isArray(j) ? j.sort().join(',') : j;
+        }).join('|');
 
         let totalPoinBenar = 0;
         let totalPoinMaksimal = 0;
-        let tBF = 0, tS = 0;
+        let tBF = 0; 
+        let tS = 0;
 
-        const sorted = [...qs].sort((x, y) => x.id - y.id);
-        const logAns = sorted.map(q => {
-            const userA = (ans[q.id] || "-").replace(/\s/g,'');
-            const kunci = q.key.replace(/\s/g,'');
-            
-            // Logika Bobot Dinamis & Default
-            let bobotSoal = 0;
-            if (q.bobot && q.bobot !== "" && q.bobot !== 0) {
-                bobotSoal = parseFloat(q.bobot);
-            } else {
-                if (q.tp === "Sederhana") bobotSoal = 1;
-                else if (q.tp === "Kategori") bobotSoal = 2;
-                else if (q.tp === "MCMA") bobotSoal = 3;
-            }
-
-            totalPoinMaksimal += bobotSoal;
-
-            // Pengecekan Presisi (All or Nothing)
-            if(userA === kunci) {
-                totalPoinBenar += bobotSoal;
+        questions.forEach(q => {
+            const bobot = parseFloat(q.bobot) || 0;
+            totalPoinMaksimal += bobot;
+            if (cekJawaban(ans[q.id], q.key)) {
+                totalPoinBenar += bobot;
                 tBF++;
             } else {
                 tS++;
             }
-            return ans[q.id] || "-";
-        }).join('|');
-        
+        });
+
         const finalNilai = totalPoinMaksimal > 0 ? ((totalPoinBenar / totalPoinMaksimal) * 100).toFixed(2) : 0;
         const tOut = new Date();
+        const durasiMenit = Math.floor((tOut - new Date(tIn)) / 60000);
+
         const body = {
-            nisn: String(u.nisn), nama: u.nama, nama_guru: ex.nama_guru, mapel: ex.mapel, kelas: u.kelas, jenjang: u.jenjang,
-            nilai: finalNilai, jml_curang: fraud, jml_benar: tBF, jml_salah: tS,
-            wkt_masuk: new Date(tIn).toLocaleString('id-ID'), wkt_submit: tOut.toLocaleString('id-ID'),
-            wkt_digunakan: `${Math.floor((tOut-new Date(tIn))/60000)} Menit`, jawaban: logAns
+            nisn: String(u.nisn), 
+            nama: u.nama, 
+            nama_guru: ex.nama_guru, 
+            mapel: ex.mapel, 
+            kelas: u.kelas, 
+            jenjang: u.jenjang,
+            nilai: finalNilai, 
+            jml_curang: fraud, 
+            jml_benar: tBF, 
+            jml_salah: tS,
+            wkt_masuk: new Date(tIn).toLocaleString('id-ID'), 
+            wkt_submit: tOut.toLocaleString('id-ID'),
+            wkt_digunakan: `${durasiMenit} Menit`, 
+            jawaban: logAns
         };
 
         try {
+            // URL disesuaikan dengan worker Anda
             const res = await fetch('https://cbt.donnyn1980.workers.dev/submit', {
-                method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify(body)
             });
-            if(res.ok) {
+            
+            if (res.ok) {
+                // Update tampilan layar sukses sesuai permintaan
+                id('success-message').innerHTML = `Selamat <b>${u.nama} (${u.kelas})</b>, Anda telah menyelesaikan ujian <b>${ex.mapel}</b> dengan durasi <b>${durasiMenit} menit</b>. Semoga mendapatkan hasil yang terbaik.`;
+                
                 localStorage.removeItem('cbt_session');
-                id('loading-screen').style.display = 'none'; id('success-screen').style.display = 'block';
-            } else { throw new Error(); }
-        } catch(e) {
-            id('loading-screen').style.display = 'none'; id('quiz-content').style.display = 'block';
-            id('btn-finish').disabled = false; isSubmitting = false;
-            showNotif('notif-quiz', 'Gagal menyimpan! Coba klik kirim lagi.', 'error');
+                id('loading-screen').style.display = 'none'; 
+                id('exam-screen').classList.remove('active');
+                id('success-screen').classList.add('active');
+            } else {
+                alert('Gagal mengirim jawaban. Coba lagi atau lapor pengawas.');
+            }
+        } catch (e) {
+            alert('Gangguan koneksi. Jawaban belum terkirim.');
+        } finally {
+            id('loading-screen').style.display = 'none';
         }
     }
 </script>
-</body>
-</html>
