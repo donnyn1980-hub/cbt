@@ -285,39 +285,26 @@
         id('loading-screen').style.display = 'block'; id('timer').style.display = 'none';
         clearInterval(tInt); isLive = false;
 
-        let totalPoinBenar = 0;
-        let totalPoinMaksimal = 0;
-        let tBF = 0, tS = 0;
-
-        // Sorting Berdasarkan No (ID) agar jawaban di DB urut
-        const sorted = [...qs].sort((x, y) => x.id - y.id);
-        const logAns = sorted.map(q => {
-            const userA = (ans[q.id] || "-").replace(/\s/g,'');
+        let tPB = 0, tPM = 0, tBF = 0, tS = 0;
+        const sortedQs = [...qs].sort((a, b) => a.id - b.id);
+        const logAns = sortedQs.map(q => {
+            const uA = (ans[q.id] || "-").replace(/\s/g,'');
             const kunci = q.key.replace(/\s/g,'');
-            
-            let bobotSoal = 0;
-            if (q.bobot && q.bobot !== "" && q.bobot !== 0) {
-                bobotSoal = parseFloat(q.bobot);
-            } else {
-                if (q.tp === "Sederhana") bobotSoal = 1;
-                else if (q.tp === "Kategori") bobotSoal = 2;
-                else if (q.tp === "MCMA") bobotSoal = 3;
-            }
-
-            totalPoinMaksimal += bobotSoal;
-            if(userA === kunci) { totalPoinBenar += bobotSoal; tBF++; } else { tS++; }
+            let b = q.bobot ? parseFloat(q.bobot) : (q.tp === "Sederhana" ? 1 : (q.tp === "Kategori" ? 2 : 3));
+            tPM += b;
+            if(uA === kunci) { tPB += b; tBF++; } else { tS++; }
             return ans[q.id] || "-";
         }).join('|');
         
-        const finalNilai = totalPoinMaksimal > 0 ? ((totalPoinBenar / totalPoinMaksimal) * 100).toFixed(2) : 0;
+        const fNilai = tPM > 0 ? ((tPB / tPM) * 100).toFixed(2) : 0;
         const tOut = new Date();
-        const durasiMenit = Math.floor((tOut - new Date(tIn)) / 60000);
+        const dM = Math.floor((tOut - new Date(tIn)) / 60000);
         
         const body = {
             nisn: String(u.nisn), nama: u.nama, nama_guru: ex.nama_guru, mapel: ex.mapel, kelas: u.kelas, jenjang: u.jenjang,
-            nilai: finalNilai, jml_curang: fraud, jml_benar: tBF, jml_salah: tS,
+            nilai: fNilai, jml_curang: fraud, jml_benar: tBF, jml_salah: tS,
             wkt_masuk: new Date(tIn).toLocaleString('id-ID'), wkt_submit: tOut.toLocaleString('id-ID'),
-            wkt_digunakan: `${durasiMenit} Menit`, jawaban: logAns
+            wkt_digunakan: `${dM} Menit`, jawaban: logAns
         };
 
         try {
@@ -325,7 +312,7 @@
                 method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)
             });
             if(res.ok) {
-                id('success-msg').innerHTML = `Selamat <b>${u.nama} (${u.kelas})</b>, Anda telah menyelesaikan ujian <b>${ex.mapel}</b> dengan durasi <b>${durasiMenit} menit</b>. Semoga mendapatkan hasil yang terbaik.`;
+                id('success-msg').innerHTML = `Selamat <b>${u.nama} (${u.kelas})</b>, Anda telah menyelesaikan ujian <b>${ex.mapel}</b> dengan durasi <b>${dM} menit</b>. Semoga mendapatkan hasil yang terbaik.`;
                 localStorage.removeItem('cbt_session');
                 id('loading-screen').style.display = 'none'; id('success-screen').style.display = 'block';
             } else { throw new Error(); }
