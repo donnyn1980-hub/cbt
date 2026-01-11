@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CBT SNIPER PRO - PREMIER EDITION</title>
+    <title>UJIAN DARING</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --primary: #1a73e8; --secondary: #5f6368; --success: #188038; --danger: #d93025; --warning: #f9ab00; --bg: #f1f3f4; }
@@ -47,9 +47,9 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .footnote { text-align: center; color: #70757a; font-size: 14px; margin-top: 40px; padding-bottom: 40px; font-weight: 500; border-top: 1px solid #dadce0; padding-top: 20px; }
         
-        /* New Styles for Symmetric Detail */
         .detail-grid { display: grid; grid-template-columns: 100px 20px 1fr; gap: 5px; margin-bottom: 5px; font-weight: bold; }
         .detail-grid .colon { text-align: center; color: var(--primary); }
+        .main-logo { display: block; width: 120px; height: auto; margin: 0 auto 15px auto; }
     </style>
 </head>
 <body oncontextmenu="return false;" onload="checkSession()">
@@ -57,6 +57,7 @@
 <div id="p-login" class="page active">
     <div class="card" style="max-width:480px; margin: 80px auto;">
         <div style="text-align:center; margin-bottom: 30px;">
+            <img src="logo.png" alt="Logo" class="main-logo" onerror="this.style.display='none'">
             <i class="fa fa-graduation-cap" style="font-size: 48px; color: var(--primary);"></i>
             <h2 style="color: #202124; margin-top: 15px;">LOGIN PESERTA UJIAN</h2>
         </div>
@@ -87,7 +88,7 @@
         <h3 id="txt-sapa" style="color: var(--primary); margin-top: 0;"></h3>
         <p style="font-size: 16px; margin-bottom: 15px; color: #3c4043;">Anda akan mengerjakan ujian dengan rincian sebagai berikut :</p>
         <div id="txt-detail-container" style="background: #e8f0fe; padding: 25px; border-radius: 8px; margin: 20px 0;">
-            </div>
+        </div>
         <button class="btn btn-blue" onclick="start()">KONFIRMASI & MULAI SEKARANG</button>
     </div>
     <div class="footnote">DEVELOPED BY DONNY NUGROHO © 2026</div>
@@ -173,7 +174,6 @@
                 id('p-login').classList.remove('active'); id('p-info').classList.add('active');
                 id('txt-sapa').innerText = `Selamat Datang, ${u.nama} (${u.kelas})`;
                 
-                // Symmetric Details Injector
                 const detailHtml = `
                     <div class="detail-grid"><span>MAPEL</span><span class="colon">:</span><span>${ex.mapel}</span></div>
                     <div class="detail-grid"><span>KELAS</span><span class="colon">:</span><span>${u.kelas}</span></div>
@@ -224,7 +224,7 @@
             let imgUrl = s.img;
             if(imgUrl.includes("drive.google.com")) {
                 const fId = imgUrl.match(/[-\w]{25,}/);
-                if(fId) imgUrl = `https://lh3.googleusercontent.com/d/${fId[0]}`;
+                if(fId) imgUrl = `https://lh3.googleusercontent.com/d/$${fId[0]}`;
             }
             h += `<img src="${imgUrl}" class="img-soal" onerror="this.src='https://placehold.co/800x400?text=Gambar+Drive+Error'">`;
         }
