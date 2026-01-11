@@ -28,7 +28,7 @@
         .option-item:hover { background: #f7f8f8; border-color: #bdc1c6; }
         .selected-opt { border-color: var(--primary) !important; background: #e8f0fe !important; font-weight: bold; color: var(--primary); }
         .selected-opt::after { content: '\f058'; font-family: 'Font Awesome 5 Free'; font-weight: 900; position: absolute; right: 20px; font-size: 20px; }
-        .img-soal { display: block; width: 100%; max-width: 300px; height: auto; margin: 0 auto 25px auto; border-radius: 8px; border: 1px solid #dadce0; background: #fff; padding: 5px; box-sizing: border-box; }
+        .img-soal { display: block; width: 100%; max-width: 100%; height: auto; margin: 0 auto 25px auto; border-radius: 8px; border: 1px solid #dadce0; background: #fff; padding: 5px; box-sizing: border-box; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; border-radius: 8px; overflow: hidden; box-shadow: 0 0 0 1px #dadce0; }
         th, td { border: 1px solid #dadce0; padding: 18px; text-align: center; }
         th { background: #f8f9fa; font-weight: 600; color: #202124; }
@@ -46,6 +46,10 @@
         .loader-spin { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .footnote { text-align: center; color: #70757a; font-size: 14px; margin-top: 40px; padding-bottom: 40px; font-weight: 500; border-top: 1px solid #dadce0; padding-top: 20px; }
+        
+        /* New Styles for Symmetric Detail */
+        .detail-grid { display: grid; grid-template-columns: 100px 20px 1fr; gap: 5px; margin-bottom: 5px; font-weight: bold; }
+        .detail-grid .colon { text-align: center; color: var(--primary); }
     </style>
 </head>
 <body oncontextmenu="return false;" onload="checkSession()">
@@ -81,9 +85,9 @@
 <div id="p-info" class="page">
     <div class="card" style="max-width:700px; margin: auto;">
         <h3 id="txt-sapa" style="color: var(--primary); margin-top: 0;"></h3>
-        <div style="background: #e8f0fe; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <p id="txt-detail" style="white-space: pre-wrap; line-height: 1.8; margin: 0; font-size: 16px; color: #1967d2;"></p>
-        </div>
+        <p style="font-size: 16px; margin-bottom: 15px; color: #3c4043;">Anda akan mengerjakan ujian dengan rincian sebagai berikut :</p>
+        <div id="txt-detail-container" style="background: #e8f0fe; padding: 25px; border-radius: 8px; margin: 20px 0;">
+            </div>
         <button class="btn btn-blue" onclick="start()">KONFIRMASI & MULAI SEKARANG</button>
     </div>
     <div class="footnote">DEVELOPED BY DONNY NUGROHO © 2026</div>
@@ -167,8 +171,18 @@
             if(d.success) {
                 u = d.siswa; ex = d.infoUjian; ex.total = d.totalSoal;
                 id('p-login').classList.remove('active'); id('p-info').classList.add('active');
-                id('txt-sapa').innerText = `Halo, ${u.nama}`;
-                id('txt-detail').innerText = `MAPEL: ${ex.mapel}\nKELAS: ${u.kelas}\nJENJANG: ${u.jenjang}\nGURU: ${ex.nama_guru}\nSOAL: ${ex.total} Butir\nDURASI: ${ex.durasi} Menit`;
+                id('txt-sapa').innerText = `Selamat Datang, ${u.nama} (${u.kelas})`;
+                
+                // Symmetric Details Injector
+                const detailHtml = `
+                    <div class="detail-grid"><span>MAPEL</span><span class="colon">:</span><span>${ex.mapel}</span></div>
+                    <div class="detail-grid"><span>KELAS</span><span class="colon">:</span><span>${u.kelas}</span></div>
+                    <div class="detail-grid"><span>JENJANG</span><span class="colon">:</span><span>${u.jenjang}</span></div>
+                    <div class="detail-grid"><span>GURU</span><span class="colon">:</span><span>${ex.nama_guru}</span></div>
+                    <div class="detail-grid"><span>SOAL</span><span class="colon">:</span><span>${ex.total} Butir</span></div>
+                    <div class="detail-grid"><span>DURASI</span><span class="colon">:</span><span>${ex.durasi} Menit</span></div>
+                `;
+                id('txt-detail-container').innerHTML = detailHtml;
             } else { showNotif('notif-login', 'NISN/Password/Token Salah!', 'error'); id('btn-login').disabled = false; }
         } catch (e) { showNotif('notif-login', 'Gangguan Server!', 'error'); id('btn-login').disabled = false; }
     }
@@ -210,9 +224,9 @@
             let imgUrl = s.img;
             if(imgUrl.includes("drive.google.com")) {
                 const fId = imgUrl.match(/[-\w]{25,}/);
-                if(fId) imgUrl = `https://lh3.googleusercontent.com/u/0/d/${fId[0]}`;
+                if(fId) imgUrl = `https://lh3.googleusercontent.com/d/${fId[0]}`;
             }
-            h += `<img src="${imgUrl}" class="img-soal" onerror="this.src='https://placehold.co/300x200?text=Gambar+Drive+Error'">`;
+            h += `<img src="${imgUrl}" class="img-soal" onerror="this.src='https://placehold.co/800x400?text=Gambar+Drive+Error'">`;
         }
         h += `<div style="font-size:20px; line-height:1.6; margin-bottom:25px;"><b>Soal ${cur+1}:</b><br>${s.q}</div>`;
         if(s.tp === 'Kategori') {
