@@ -1,8 +1,89 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>UJIAN DARING</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --primary: #1a73e8; --secondary: #5f6368; --success: #188038; --danger: #d93025; --warning: #f9ab00; --bg: #f1f3f4; }
+        body { font-family: 'Google Sans', Roboto, Arial, sans-serif; margin: 0; background: var(--bg); user-select: none; color: #3c4043; transition: background 0.3s; }
+        .page { display: none; min-height: 100vh; padding: 20px; box-sizing: border-box; }
+        .active { display: block; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); margin-bottom: 20px; max-width: 800px; margin-left: auto; margin-right: auto; }
+        .btn { padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; transition: all 0.2s; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: #1557b0; box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15); }
+        .option { display: flex; align-items: center; padding: 15px; border: 1px solid #dadce0; border-radius: 8px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s; }
+        .option:hover { background: #f8f9fa; border-color: #bdc1c6; }
+        .option.selected { background: #e8f0fe; border-color: var(--primary); color: #1967d2; }
+        .opt-label { width: 32px; height: 32px; border: 1px solid #dadce0; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: 500; flex-shrink: 0; }
+        .selected .opt-label { background: var(--primary); color: white; border-color: var(--primary); }
+        #loading-screen { position: fixed; inset: 0; background: rgba(255,255,255,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
+        .nav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 10px; margin-top: 20px; }
+        .nav-item { height: 45px; display: flex; align-items: center; justify-content: center; border: 1px solid #dadce0; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; background: white; }
+        .nav-item.answered { background: var(--primary); color: white; border-color: var(--primary); }
+        .nav-item.current { border: 2px solid var(--primary); color: var(--primary); }
+        @media (max-width: 600px) { .card { padding: 20px; } .btn { width: 100%; justify-content: center; } }
+    </style>
+</head>
+<body>
+
+<div id="loading-screen">
+    <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+    <p style="margin-top: 15px; font-weight: 500;">Mohon tunggu...</p>
+</div>
+
+<div id="login-screen" class="page active">
+    <div class="card" style="max-width: 400px; margin-top: 50px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <i class="fas fa-graduation-cap" style="font-size: 48px; color: var(--primary);"></i>
+            <h2 style="margin: 15px 0 5px;">CBT SMAN 2 CIKBAR</h2>
+            <p style="color: var(--secondary);">Silakan login untuk memulai ujian</p>
+        </div>
+        <input type="text" id="nisn" placeholder="NISN" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #dadce0; border-radius: 4px; box-sizing: border-box;">
+        <input type="password" id="pass" placeholder="Password" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #dadce0; border-radius: 4px; box-sizing: border-box;">
+        <input type="text" id="token" placeholder="Token Ujian" style="width: 100%; padding: 12px; margin-bottom: 25px; border: 1px solid #dadce0; border-radius: 4px; box-sizing: border-box;">
+        <button class="btn btn-primary" onclick="login()" style="width: 100%;">
+            <i class="fas fa-sign-in-alt"></i> MASUK KE UJIAN
+        </button>
+    </div>
+</div>
+
+<div id="exam-screen" class="page">
+    <div style="max-width: 800px; margin: 0 auto;">
+        <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 30px;">
+            <div id="timer" style="font-size: 20px; font-weight: bold; color: var(--danger);">00:00:00</div>
+            <div id="user-info" style="text-align: right; font-size: 14px;"></div>
+        </div>
+        
+        <div id="question-container"></div>
+        
+        <div style="display: flex; justify-content: space-between; gap: 15px; margin-bottom: 30px;">
+            <button class="btn" style="background: white; border: 1px solid #dadce0;" onclick="prev()">
+                <i class="fas fa-chevron-left"></i> SEBELUMNYA
+            </button>
+            <button id="next-btn" class="btn btn-primary" onclick="next()">
+                BERIKUTNYA <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top: 0; font-size: 16px;">Navigasi Soal</h3>
+            <div id="nav-grid" class="nav-grid"></div>
+            <hr style="margin: 25px 0; border: 0; border-top: 1px solid #eee;">
+            <button class="btn" style="background: var(--danger); color: white; width: 100%;" onclick="submitUjian()">
+                <i class="fas fa-paper-plane"></i> SELESAI & KIRIM JAWABAN
+            </button>
+        </div>
+    </div>
+</div>
+
 <div id="success-screen" class="page">
-    <div class="card" style="text-align: center;">
+    <div class="card" style="text-align: center; margin-top: 50px;">
         <i class="fas fa-check-circle" style="font-size: 64px; color: var(--success); margin-bottom: 20px;"></i>
-        <h2 id="success-title">Jawaban Berhasil Terkirim</h2>
-        <p id="success-message" style="line-height: 1.6; color: var(--secondary); margin-bottom: 25px;"></p>
+        <h2>Jawaban Berhasil Terkirim</h2>
+        <p id="success-msg" style="line-height: 1.6; color: var(--secondary); margin-bottom: 25px;"></p>
         <div style="background: #e8f0fe; padding: 15px; border-radius: 8px; font-weight: 500; color: #1967d2;">
             Tunjukkan teks ini kepada Pengawas untuk meninggalkan Ruangan.
         </div>
@@ -10,82 +91,182 @@
 </div>
 
 <script>
-    // ... (kode lainnya tetap sama) ...
+    const id = (x) => document.getElementById(x);
+    let u, ex, questions = [], cur = 0, ans = {}, tIn, fraud = 0;
 
-    async function submitUjian() {
-        if (!confirm('Yakin ingin mengakhiri ujian?')) return;
+    async function login() {
+        const nisn = id('nisn').value, password = id('pass').value, token = id('token').value;
+        if(!nisn || !password || !token) return alert('Lengkapi data!');
+        
+        id('loading-screen').style.display = 'flex';
+        try {
+            const res = await fetch('https://cbt.donnyn1980.workers.dev/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({nisn, password, token})
+            });
+            const d = await res.json();
+            if(d.success) {
+                u = d.siswa; ex = d.infoUjian;
+                tIn = new Date();
+                await loadSoal(token);
+                startExam();
+            } else alert('Login Gagal! Periksa NISN/Password/Token');
+        } catch(e) { alert('Error: ' + e.message); }
+        id('loading-screen').style.display = 'none';
+    }
+
+    async function loadSoal(token) {
+        const res = await fetch(`https://cbt.donnyn1980.workers.dev/get-soal?token=${token}`);
+        questions = await res.json();
+    }
+
+    function startExam() {
+        id('login-screen').classList.remove('active');
+        id('exam-screen').classList.add('active');
+        id('user-info').innerHTML = `<b>${u.nama}</b><br>${u.kelas} | ${ex.mapel}`;
+        render();
+        renderNav();
+        startTimer(ex.durasi * 60);
+    }
+
+    function render() {
+        const q = questions[cur];
+        let h = `
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 20px; color: var(--secondary); font-size: 14px;">
+                    <span>SOAL NO. <b>${cur + 1}</b> dari ${questions.length}</span>
+                    <span>Tipe: <b>${q.tp}</b></span>
+                </div>
+                ${q.st ? `<div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--primary);">${q.st}</div>` : ''}
+                <div style="font-size: 18px; margin-bottom: 25px; line-height: 1.5;">${q.q}</div>
+                ${q.img ? `<img src="${q.img}" style="max-width: 100%; border-radius: 8px; margin-bottom: 25px;">` : ''}
+                <div id="options">
+        `;
+
+        q.opt.forEach(o => {
+            const isSel = q.tp === 'PILIHAN GANDA' ? (ans[q.id] === o.orig) : (ans[q.id] && ans[q.id].includes(o.orig));
+            h += `
+                <div class="option ${isSel ? 'selected' : ''}" onclick="pilih('${o.orig}')">
+                    <div class="opt-label">${o.label}</div>
+                    <div>${o.text}</div>
+                </div>
+            `;
+        });
+
+        h += `</div></div>`;
+        id('question-container').innerHTML = h;
+        id('next-btn').innerHTML = cur === questions.length - 1 ? 'SELESAI <i class="fas fa-check"></i>' : 'BERIKUTNYA <i class="fas fa-chevron-right"></i>';
+    }
+
+    function pilih(o) {
+        const q = questions[cur];
+        if(q.tp === 'PILIHAN GANDA') {
+            ans[q.id] = o;
+        } else {
+            if(!ans[q.id]) ans[q.id] = [];
+            const idx = ans[q.id].indexOf(o);
+            if(idx > -1) ans[q.id].splice(idx, 1);
+            else ans[q.id].push(o);
+        }
+        render();
+        renderNav();
+    }
+
+    function renderNav() {
+        let h = '';
+        questions.forEach((q, i) => {
+            const isAns = q.tp === 'PILIHAN GANDA' ? ans[q.id] : (ans[q.id] && ans[q.id].length > 0);
+            h += `<div class="nav-item ${isAns ? 'answered' : ''} ${cur === i ? 'current' : ''}" onclick="goTo(${i})">${i + 1}</div>`;
+        });
+        id('nav-grid').innerHTML = h;
+    }
+
+    function goTo(i) { cur = i; render(); renderNav(); }
+    function next() { if(cur < questions.length - 1) { cur++; render(); renderNav(); } else submitUjian(); }
+    function prev() { if(cur > 0) { cur--; render(); renderNav(); } }
+
+    function startTimer(sec) {
+        const t = setInterval(() => {
+            const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+            id('timer').innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            if(sec-- <= 0) { clearInterval(t); submitUjian(true); }
+        }, 1000);
+    }
+
+    function cekJawaban(user, key) {
+        if(!user) return false;
+        if(Array.isArray(user)) return user.sort().join(',') === key.split(',').sort().join(',');
+        return user === key;
+    }
+
+    async function submitUjian(auto = false) {
+        if(!auto && !confirm('Yakin ingin mengakhiri ujian?')) return;
         id('loading-screen').style.display = 'flex';
 
-        // LOGIKA BARU: Mengurutkan jawaban berdasarkan rowid agar tertata di kolom database
-        // questions adalah array soal yang kita miliki
+        let totalPoinBenar = 0, totalPoinMaksimal = 0, tBF = 0, tS = 0;
+        
+        // --- LOGIKA PENYUSUNAN JAWABAN BERDASARKAN ROWID (Urutan database asli) ---
         const sortedQuestions = [...questions].sort((a, b) => a.id - b.id);
         
         const logAns = sortedQuestions.map(q => {
-            const j = ans[q.id];
-            if (!j) return "-";
-            return Array.isArray(j) ? j.sort().join(',') : j;
-        }).join('|');
-
-        let totalPoinBenar = 0;
-        let totalPoinMaksimal = 0;
-        let tBF = 0; 
-        let tS = 0;
-
-        questions.forEach(q => {
             const bobot = parseFloat(q.bobot) || 0;
             totalPoinMaksimal += bobot;
-            if (cekJawaban(ans[q.id], q.key)) {
+            
+            if(cekJawaban(ans[q.id], q.key)) {
                 totalPoinBenar += bobot;
                 tBF++;
             } else {
                 tS++;
             }
-        });
 
+            const j = ans[q.id];
+            if(!j) return "-";
+            return Array.isArray(j) ? j.sort().join(',') : j;
+        }).join('|');
+        
         const finalNilai = totalPoinMaksimal > 0 ? ((totalPoinBenar / totalPoinMaksimal) * 100).toFixed(2) : 0;
         const tOut = new Date();
         const durasiMenit = Math.floor((tOut - new Date(tIn)) / 60000);
 
         const body = {
-            nisn: String(u.nisn), 
-            nama: u.nama, 
-            nama_guru: ex.nama_guru, 
-            mapel: ex.mapel, 
-            kelas: u.kelas, 
-            jenjang: u.jenjang,
-            nilai: finalNilai, 
-            jml_curang: fraud, 
-            jml_benar: tBF, 
-            jml_salah: tS,
-            wkt_masuk: new Date(tIn).toLocaleString('id-ID'), 
-            wkt_submit: tOut.toLocaleString('id-ID'),
-            wkt_digunakan: `${durasiMenit} Menit`, 
-            jawaban: logAns
+            nisn: String(u.nisn), nama: u.nama, nama_guru: ex.nama_guru, mapel: ex.mapel, kelas: u.kelas, jenjang: u.jenjang,
+            nilai: finalNilai, jml_curang: fraud, jml_benar: tBF, jml_salah: tS,
+            wkt_masuk: new Date(tIn).toLocaleString('id-ID'), wkt_submit: tOut.toLocaleString('id-ID'),
+            wkt_digunakan: `${durasiMenit} Menit`, jawaban: logAns
         };
 
         try {
-            // URL disesuaikan dengan worker Anda
             const res = await fetch('https://cbt.donnyn1980.workers.dev/submit', {
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify(body)
+                method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)
             });
-            
-            if (res.ok) {
-                // Update tampilan layar sukses sesuai permintaan
-                id('success-message').innerHTML = `Selamat <b>${u.nama} (${u.kelas})</b>, Anda telah menyelesaikan ujian <b>${ex.mapel}</b> dengan durasi <b>${durasiMenit} menit</b>. Semoga mendapatkan hasil yang terbaik.`;
+            if(res.ok) {
+                // MODIFIKASI PESAN SUKSES SESUAI PERMINTAAN
+                id('success-msg').innerHTML = `Selamat <b>${u.nama} (${u.kelas})</b>, Anda telah menyelesaikan ujian <b>${ex.mapel}</b> dengan durasi <b>${durasiMenit} menit</b>. Semoga mendapatkan hasil yang terbaik.`;
                 
                 localStorage.removeItem('cbt_session');
                 id('loading-screen').style.display = 'none'; 
                 id('exam-screen').classList.remove('active');
                 id('success-screen').classList.add('active');
             } else {
-                alert('Gagal mengirim jawaban. Coba lagi atau lapor pengawas.');
+                alert('Gagal mengirim jawaban ke server. Harap lapor pengawas!');
             }
-        } catch (e) {
-            alert('Gangguan koneksi. Jawaban belum terkirim.');
-        } finally {
-            id('loading-screen').style.display = 'none';
-        }
+        } catch(e) { alert('Koneksi terputus! Jangan tutup halaman ini.'); }
+        id('loading-screen').style.display = 'none';
     }
+
+    // Deteksi Pindah Tab/Kecurangan
+    document.addEventListener('visibilitychange', () => {
+        if(document.hidden && id('exam-screen').classList.contains('active')) {
+            fraud++;
+            alert('PERINGATAN: Tetaplah di halaman ujian!');
+        }
+    });
+
+    window.oncontextmenu = () => false;
+    window.onkeydown = (e) => {
+        if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74))) return false;
+    };
 </script>
+</body>
+</html>
