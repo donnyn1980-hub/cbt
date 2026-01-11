@@ -47,7 +47,6 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .footnote { text-align: center; color: #70757a; font-size: 14px; margin-top: 40px; padding-bottom: 40px; font-weight: 500; border-top: 1px solid #dadce0; padding-top: 20px; }
         
-        /* Simetris Detail Styles */
         .detail-grid { display: grid; grid-template-columns: 100px 20px 1fr; gap: 5px; margin-bottom: 5px; font-weight: bold; }
         .detail-grid .colon { text-align: center; color: var(--primary); }
         .login-logo { height: 48px; width: auto; margin-bottom: 10px; }
@@ -87,8 +86,7 @@
     <div class="card" style="max-width:700px; margin: auto;">
         <h3 id="txt-sapa" style="color: var(--primary); margin-top: 0;"></h3>
         <p style="font-size: 16px; margin-bottom: 15px; color: #3c4043;">Anda akan mengerjakan ujian dengan rincian sebagai berikut :</p>
-        <div id="txt-detail-container" style="background: #e8f0fe; padding: 25px; border-radius: 8px; margin: 20px 0;">
-            </div>
+        <div id="txt-detail-container" style="background: #e8f0fe; padding: 25px; border-radius: 8px; margin: 20px 0;"></div>
         <button class="btn btn-blue" onclick="start()">KONFIRMASI & MULAI SEKARANG</button>
     </div>
     <div class="footnote">DEVELOPED BY DONNY NUGROHO © 2026</div>
@@ -143,24 +141,15 @@
             const now = new Date();
             const elapsed = Math.floor((now - startTime) / 1000);
             const remaining = (ex.durasi * 60) - elapsed;
-
             if (remaining > 0) {
-                tIn = startTime;
-                id('p-login').classList.remove('active');
-                id('p-quiz').classList.add('active');
-                isLive = true;
-                applyBlink();
-                runTimer(remaining);
-                render();
+                tIn = startTime; id('p-login').classList.remove('active'); id('p-quiz').classList.add('active');
+                isLive = true; applyBlink(); runTimer(remaining); render();
             } else { localStorage.removeItem('cbt_session'); }
         }
     }
 
     function saveSession() {
-        if (isLive) {
-            const data = { u, ex, qs, ans, fraud, cur, tIn };
-            localStorage.setItem('cbt_session', JSON.stringify(data));
-        }
+        if (isLive) { localStorage.setItem('cbt_session', JSON.stringify({ u, ex, qs, ans, fraud, cur, tIn })); }
     }
 
     async function login() {
@@ -173,7 +162,6 @@
                 u = d.siswa; ex = d.infoUjian; ex.total = d.totalSoal;
                 id('p-login').classList.remove('active'); id('p-info').classList.add('active');
                 id('txt-sapa').innerText = `Selamat Datang, ${u.nama} (${u.kelas})`;
-                
                 const detailHtml = `
                     <div class="detail-grid"><span>MAPEL</span><span class="colon">:</span><span>${ex.mapel}</span></div>
                     <div class="detail-grid"><span>KELAS</span><span class="colon">:</span><span>${u.kelas}</span></div>
@@ -197,11 +185,7 @@
     }
 
     document.addEventListener("visibilitychange", () => {
-        if (isLive && document.hidden) {
-            fraud++;
-            applyBlink();
-            saveSession();
-        }
+        if (isLive && document.hidden) { fraud++; applyBlink(); saveSession(); }
     });
 
     function applyBlink() {
@@ -258,8 +242,7 @@
         const inputs = document.querySelectorAll(`input[name="q_${id_soal}"]:checked`);
         const vals = Array.from(inputs).map(i => i.value);
         if(vals.length > 0) ans[id_soal] = vals.sort().join(','); else delete ans[id_soal];
-        saveSession();
-        render();
+        saveSession(); render();
         if(tipe === 'Sederhana' && vals.length > 0) { setTimeout(() => { if(cur < qs.length - 1) move(1); }, 400); }
     }
 
@@ -267,8 +250,7 @@
         let a = (ans[id_soal] || "").split(',');
         if(a.length !== total) a = new Array(total).fill("");
         a[idx] = val; ans[id_soal] = a.join(',');
-        saveSession();
-        updateGrid();
+        saveSession(); updateGrid();
         if(a.every(x => x !== "")) { setTimeout(() => { if(cur < qs.length - 1) move(1); }, 400); }
     }
 
@@ -278,9 +260,8 @@
         qs.forEach((s, i) => {
             let cls = 'box', statusDone = false;
             if(ans[s.id]) {
-                if(s.tp === 'Kategori') {
-                    if(ans[s.id].split(',').filter(x => x !== "").length === s.q.split(';').length) statusDone = true;
-                } else { statusDone = true; }
+                if(s.tp === 'Kategori') { if(ans[s.id].split(',').filter(x => x !== "").length === s.q.split(';').length) statusDone = true; } 
+                else { statusDone = true; }
             }
             if(statusDone) { cls += ' done'; countDone++; }
             if(i === cur) cls += ' now';
@@ -292,36 +273,51 @@
 
     window.move = (step) => { cur += step; if(cur<0) cur=0; if(cur>=qs.length) cur=qs.length-1; saveSession(); render(); }
 
-    function exitQuiz() {
-        localStorage.removeItem('cbt_session');
-        location.reload();
-    }
+    function exitQuiz() { localStorage.removeItem('cbt_session'); location.reload(); }
 
     async function submitJawaban() {
         if(isSubmitting) return;
         isSubmitting = true;
-        id('btn-finish').disabled = true;
-        id('quiz-content').style.display = 'none';
-        id('loading-screen').style.display = 'block';
-        id('timer').style.display = 'none';
-
+        id('btn-finish').disabled = true; id('quiz-content').style.display = 'none';
+        id('loading-screen').style.display = 'block'; id('timer').style.display = 'none';
         clearInterval(tInt); isLive = false;
-        let tPK = 0, tPD = 0, tBF = 0, tS = 0;
+
+        let totalPoinBenar = 0;
+        let totalPoinMaksimal = 0;
+        let tBF = 0, tS = 0;
+
         const sorted = [...qs].sort((x, y) => x.id - y.id);
         const logAns = sorted.map(q => {
-            const userA = ans[q.id] || "-";
-            const kuncis = q.key.split(',').map(k => k.trim());
-            const jawabans = userA.split(',').map(j => j.trim());
-            tPK += kuncis.length;
-            kuncis.forEach(k => { if(jawabans.includes(k)) tPD++; });
-            if(userA.replace(/\s/g,'') === q.key.replace(/\s/g,'')) tBF++; else tS++;
-            return userA;
+            const userA = (ans[q.id] || "-").replace(/\s/g,'');
+            const kunci = q.key.replace(/\s/g,'');
+            
+            // Logika Bobot Dinamis & Default
+            let bobotSoal = 0;
+            if (q.bobot && q.bobot !== "" && q.bobot !== 0) {
+                bobotSoal = parseFloat(q.bobot);
+            } else {
+                if (q.tp === "Sederhana") bobotSoal = 1;
+                else if (q.tp === "Kategori") bobotSoal = 2;
+                else if (q.tp === "MCMA") bobotSoal = 3;
+            }
+
+            totalPoinMaksimal += bobotSoal;
+
+            // Pengecekan Presisi (All or Nothing)
+            if(userA === kunci) {
+                totalPoinBenar += bobotSoal;
+                tBF++;
+            } else {
+                tS++;
+            }
+            return ans[q.id] || "-";
         }).join('|');
         
+        const finalNilai = totalPoinMaksimal > 0 ? ((totalPoinBenar / totalPoinMaksimal) * 100).toFixed(2) : 0;
         const tOut = new Date();
         const body = {
             nisn: String(u.nisn), nama: u.nama, nama_guru: ex.nama_guru, mapel: ex.mapel, kelas: u.kelas, jenjang: u.jenjang,
-            nilai: ((tPD / tPK) * 100).toFixed(2), jml_curang: fraud, jml_benar: tBF, jml_salah: tS,
+            nilai: finalNilai, jml_curang: fraud, jml_benar: tBF, jml_salah: tS,
             wkt_masuk: new Date(tIn).toLocaleString('id-ID'), wkt_submit: tOut.toLocaleString('id-ID'),
             wkt_digunakan: `${Math.floor((tOut-new Date(tIn))/60000)} Menit`, jawaban: logAns
         };
@@ -332,12 +328,10 @@
             });
             if(res.ok) {
                 localStorage.removeItem('cbt_session');
-                id('loading-screen').style.display = 'none';
-                id('success-screen').style.display = 'block';
+                id('loading-screen').style.display = 'none'; id('success-screen').style.display = 'block';
             } else { throw new Error(); }
         } catch(e) {
-            id('loading-screen').style.display = 'none';
-            id('quiz-content').style.display = 'block';
+            id('loading-screen').style.display = 'none'; id('quiz-content').style.display = 'block';
             id('btn-finish').disabled = false; isSubmitting = false;
             showNotif('notif-quiz', 'Gagal menyimpan! Coba klik kirim lagi.', 'error');
         }
