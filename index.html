@@ -205,7 +205,7 @@
 
     function render() {
         const s = qs[cur];
-        // Format Gabungan Stimulus dan Butir Soal di atas kartu
+        // Menggabungkan Stimulus (s.st) dan Butir Soal (s.q) ke dalam area teks utama
         let teksUtama = s.st ? `${s.st}<br><br>${s.q}` : s.q;
         
         let h = `<div class="card">`;
@@ -218,10 +218,11 @@
             h += `<img src="${imgUrl}" class="img-soal" onerror="this.src='https://placehold.co/800x400?text=Gambar+Tidak+Ditemukan'">`;
         }
         
+        // Menampilkan teks pengantar (Stimulus + Soal)
         h += `<div style="font-size:20px; line-height:1.6; margin-bottom:25px;"><b>Soal ${cur+1}:</b><br>${teksUtama}</div>`;
         
         if(s.tp === 'Kategori') {
-            // Tetap pecah butir soal berdasarkan (;) untuk mengisi kolom Kasus di tabel
+            // Memecah butir soal (s.q) menjadi baris tabel, tetap berfungsi sesuai permintaan
             const baris = s.q.split(';');
             h += `<table><tr><th>Kasus</th><th>${s.kat[0]}</th><th>${s.kat[1]}</th></tr>`;
             baris.forEach((txt, i) => {
