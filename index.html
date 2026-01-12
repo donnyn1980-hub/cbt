@@ -23,7 +23,7 @@
         .box { padding: 15px 5px; background: #fff; border: 2px solid #dadce0; border-radius: 8px; text-align: center; cursor: pointer; font-size: 15px; font-weight: bold; transition: 0.2s; color: #5f6368; }
         .box.done { background: var(--success); color: white; border-color: var(--success); }
         .box.now { background: var(--warning); border-color: #202124; color: #202124; transform: scale(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
-        .stimulus { background: #f8f9fa; padding: 25px; border-left: 8px solid var(--primary); margin-bottom: 25px; font-style: normal; border-radius: 4px; line-height: 1.8; color: #3c4043; border: 1px solid #eee; }
+        /* Style stimulus telah dihapus sesuai instruksi */
         .option-item { display: flex; align-items: center; padding: 18px; border: 2px solid #dadce0; border-radius: 12px; margin-bottom: 15px; cursor: pointer; transition: 0.2s; background: #fff; position: relative; }
         .option-item:hover { background: #f7f8f8; border-color: #bdc1c6; }
         .selected-opt { border-color: var(--primary) !important; background: #e8f0fe !important; font-weight: bold; color: var(--primary); }
@@ -206,7 +206,10 @@
 
     function render() {
         const s = qs[cur];
-        let h = `<div class="card">${s.st ? `<div class="stimulus">${s.st}</div>` : ''}`;
+        // Menggabungkan Stimulus (s.st) dan Butir Soal (s.q) dalam kartu, menghapus tampilan terpisah
+        let teksGabungan = s.st ? `${s.st}<br><br>${s.q}` : s.q;
+        
+        let h = `<div class="card">`;
         if(s.img && s.img !== "-") {
             let imgUrl = s.img;
             if(imgUrl.includes("drive.google.com")) {
@@ -215,13 +218,17 @@
             }
             h += `<img src="${imgUrl}" class="img-soal" onerror="this.src='https://placehold.co/800x400?text=Gambar+Drive+Error'">`;
         }
-        h += `<div style="font-size:20px; line-height:1.6; margin-bottom:25px;"><b>Soal ${cur+1}:</b><br>${s.q}</div>`;
+        
+        // Tampilkan Stimulus dan Soal sebagai teks pengantar di kartu
+        h += `<div style="font-size:20px; line-height:1.6; margin-bottom:25px;"><b>Soal ${cur+1}:</b><br>${teksGabungan}</div>`;
+        
         if(s.tp === 'Kategori') {
-            const baris = s.q.split(';');
+            // Memecah teks gabungan ke dalam tabel berdasarkan tanda koma (,) sesuai instruksi
+            const baris = teksGabungan.split(',');
             h += `<table><tr><th>Kasus</th><th>${s.kat[0]}</th><th>${s.kat[1]}</th></tr>`;
             baris.forEach((txt, i) => {
                 let curAnsArr = ans[s.id] ? ans[s.id].split(',') : new Array(baris.length).fill("");
-                h += `<tr><td style="text-align:left;">${txt}</td>
+                h += `<tr><td style="text-align:left;">${txt.trim()}</td>
                 <td><input type="radio" name="k_${s.id}_${i}" value="A" ${curAnsArr[i]=='A'?'checked':''} onchange="saveKat(${s.id},${i},'A',${baris.length})"></td>
                 <td><input type="radio" name="k_${s.id}_${i}" value="B" ${curAnsArr[i]=='B'?'checked':''} onchange="saveKat(${s.id},${i},'B',${baris.length})"></td></tr>`;
             });
@@ -263,7 +270,10 @@
         qs.forEach((s, i) => {
             let cls = 'box', statusDone = false;
             if(ans[s.id]) {
-                if(s.tp === 'Kategori') { if(ans[s.id].split(',').filter(x => x !== "").length === s.q.split(';').length) statusDone = true; } 
+                if(s.tp === 'Kategori') { 
+                    const teksGabungan = s.st ? `${s.st}<br><br>${s.q}` : s.q;
+                    if(ans[s.id].split(',').filter(x => x !== "").length === teksGabungan.split(',').length) statusDone = true; 
+                } 
                 else { statusDone = true; }
             }
             if(statusDone) { cls += ' done'; countDone++; }
