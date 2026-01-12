@@ -205,8 +205,8 @@
 
     function render() {
         const s = qs[cur];
-        // Menggabungkan Stimulus (s.st) dan Butir Soal (s.q) ke dalam area teks utama
-        let teksUtama = s.st ? `${s.st}<br><br>${s.q}` : s.q;
+        // Stimulus digabung di atas Butir Soal tanpa box terpisah
+        let combinedText = s.st ? `${s.st}<br><br>${s.q}` : s.q;
         
         let h = `<div class="card">`;
         if(s.img && s.img !== "-") {
@@ -215,14 +215,13 @@
                 const fId = imgUrl.match(/[-\w]{25,}/);
                 if(fId) imgUrl = `https://lh3.googleusercontent.com/u/0/d/${fId[0]}`;
             }
-            h += `<img src="${imgUrl}" class="img-soal" onerror="this.src='https://placehold.co/800x400?text=Gambar+Tidak+Ditemukan'">`;
+            h += `<img src="${imgUrl}" class="img-soal" onerror="this.src='https://placehold.co/800x400?text=Gambar+Drive+Error'">`;
         }
         
-        // Menampilkan teks pengantar (Stimulus + Soal)
-        h += `<div style="font-size:20px; line-height:1.6; margin-bottom:25px;"><b>Soal ${cur+1}:</b><br>${teksUtama}</div>`;
+        h += `<div style="font-size:20px; line-height:1.6; margin-bottom:25px;"><b>Soal ${cur+1}:</b><br>${combinedText}</div>`;
         
         if(s.tp === 'Kategori') {
-            // Memecah butir soal (s.q) menjadi baris tabel, tetap berfungsi sesuai permintaan
+            // Memecah butir soal berdasarkan titik koma (;) untuk baris tabel
             const baris = s.q.split(';');
             h += `<table><tr><th>Kasus</th><th>${s.kat[0]}</th><th>${s.kat[1]}</th></tr>`;
             baris.forEach((txt, i) => {
