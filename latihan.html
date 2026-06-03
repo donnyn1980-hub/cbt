@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ASAT Sosiologi Kelas X | Adaptive Exam</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none; /* anti seleksi teks ringan */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f0f2f5;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            overflow-x: hidden;
+            touch-action: pan-y pinch-zoom;
+        }
+
+        .fullscreen-mode {
+            width: 100%;
+            min-height: 100vh;
+            background: #f0f2f5;
+        }
+
+        .quiz-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 16px 12px 30px 12px;
+        }
+
+        /* layar nama */
+        .welcome-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 85vh;
+            text-align: center;
+            background: white;
+            border-radius: 48px;
+            padding: 32px 24px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.05);
+        }
+        .welcome-screen h1 {
+            font-size: 1.8rem;
+            color: #1e3a5f;
+            margin-bottom: 8px;
+        }
+        .welcome-screen p {
+            color: #4a627a;
+            margin-bottom: 32px;
+        }
+        .name-input {
+            width: 100%;
+            padding: 16px 20px;
+            font-size: 1rem;
+            border: 2px solid #e2edf7;
+            border-radius: 60px;
+            margin-bottom: 24px;
+            text-align: center;
+            font-weight: 500;
+            outline: none;
+            transition: 0.2s;
+        }
+        .name-input:focus {
+            border-color: #2c7be5;
+        }
+        .start-btn {
+            background: #2c7be5;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 16px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .start-btn:active { background: #1f60b5; }
+
+        /* header stats */
+        .header-stats {
+            background: white;
+            border-radius: 28px;
+            padding: 12px 18px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .badge-progress {
+            background: #2c3e66;
+            color: white;
+            border-radius: 30px;
+            padding: 6px 14px;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+        .cheat-counter {
+            background: #fef1e0;
+            color: #c76e00;
+            border-radius: 30px;
+            padding: 6px 14px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            transition: 0.1s;
+        }
+        .menu-btn {
+            background: #eef2fa;
+            border: none;
+            border-radius: 40px;
+            padding: 8px 18px;
+            font-weight: bold;
+            color: #1e3a5f;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.2s;
+        }
+        .menu-btn:active { background: #d4dfef; }
+
+        .question-card {
+            background: white;
+            border-radius: 32px;
+            padding: 22px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+        }
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            line-height: 1.4;
+            margin-bottom: 24px;
+            color: #0b2b3b;
+        }
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        /* Gaya opsi tanpa huruf abjad di depan (cukup CSS) - menggunakan pseudo/bullet */
+        .opt-item {
+            background: #f8fafc;
+            border-radius: 60px;
+            padding: 14px 20px;
+            border: 1px solid #e2edf7;
+            cursor: pointer;
+            transition: 0.15s;
+            font-size: 0.95rem;
+            line-height: 1.3;
+            color: #1e3a5f;
+            font-weight: 500;
+            position: relative;
+        }
+        .opt-item.selected {
+            background: #e6f0ff;
+            border-color: #2c7be5;
+            box-shadow: 0 0 0 2px rgba(44,123,229,0.2);
+            color: #0c4e8c;
+        }
+        .opt-item:active { transform: scale(0.99); background: #eef2fa; }
+
+        /* indikator pilihan berupa bullet natural tanpa huruf */
+        .opt-item::before {
+            content: "•";
+            margin-right: 12px;
+            font-size: 1.3rem;
+            font-weight: normal;
+            color: #6c86a3;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .opt-item.selected::before {
+            content: "✓";
+            color: #2c7be5;
+            font-weight: bold;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 10px 0 20px;
+        }
+        .nav-btn {
+            background: white;
+            border: none;
+            padding: 14px 0;
+            flex: 1;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: 0.2s;
+            color: #1e4663;
+        }
+        .nav-btn:active { background: #e9ecf2; }
+        .submit-area {
+            text-align: center;
+            margin-top: 12px;
+        }
+        .submit-btn {
+            background: #2c7be5;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 16px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 6px 14px rgba(44,123,229,0.3);
+        }
+        .submit-btn:active { background: #1f60b5; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: 0.2s;
+        }
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+        .modal-card {
+            background: white;
+            width: 85%;
+            max-width: 320px;
+            border-radius: 40px;
+            padding: 28px 20px;
+            text-align: center;
+        }
+        .modal-card h3 { margin-top: 0; color: #cc3b3b; }
+        .modal-card button {
+            background: #2c3e66;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-weight: bold;
+            margin-top: 16px;
+            width: 100%;
+        }
+
+        .result-area {
+            background: white;
+            border-radius: 32px;
+            padding: 20px;
+            text-align: center;
+        }
+        .restart-quiz {
+            background: #1e4663;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 40px;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        footer {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 30px;
+            color: #6c7a8e;
+        }
+        .nama-badge {
+            background: #eef2fa;
+            border-radius: 40px;
+            padding: 5px 14px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #1e4663;
+        }
+        /* animasi peringatan tanpa popup */
+        .cheat-warning {
+            animation: shakeWarning 0.3s ease-in-out 0s 2;
+        }
+        @keyframes shakeWarning {
+            0% { transform: translateX(0); background-color: #ffdddd; }
+            50% { transform: translateX(5px); background-color: #ffb3b3; }
+            100% { transform: translateX(0); background-color: #fef1e0; }
+        }
+    </style>
+</head>
+<body>
+<div class="fullscreen-mode" id="appRoot">
+    <div class="quiz-container" id="mainView">
+        <div id="dynamicContent"></div>
+        <footer>© ASAT Sosiologi | Mode Acak & Anti-Cheat</footer>
+    </div>
+</div>
+
+<!-- modal hanya untuk ban serius (tanpa popup biasa) -->
+<div id="warningModal" class="modal-overlay">
+    <div class="modal-card">
+        <h3 id="modalTitle">⛔ Ujian Dihentikan</h3>
+        <p id="modalMessage">Terlalu banyak pindah tab. Ujian dibatalkan.</p>
+        <button id="modalConfirmBtn">Kembali ke Menu Utama</button>
+    </div>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    // BANK SOAL ASLI (50 SOAL) berdasarkan kisi-kisi
+    // --------------------------------------------------------------
+    const originalQuestions = [
+        { text: "Manakah pernyataan yang paling tepat mengenai definisi nilai sosial?", options: ["Konsepsi abstrak tentang baik-buruk, pantas-tidak pantas yang dianut masyarakat", "Aturan tertulis yang mengikat warga", "Sanksi tegas dari penguasa", "Kebiasaan turun-temurun tanpa makna"], correct: 0 },
+        { text: "Perhatikan contoh: Anak belajar sopan santun dari orang tua secara turun-temurun. Hal ini menunjukkan ciri nilai sosial yaitu...", options: ["Terbentuk melalui proses belajar", "Beragam antarmasyarakat", "Memiliki dampak emosional", "Hasil interaksi spontan"], correct: 0 },
+        { text: "Nilai sosial berfungsi sebagai petunjuk arah perilaku individu. Contoh berikut yang sesuai fungsi tersebut adalah...", options: ["Seseorang rajin belajar karena menganggap ilmu itu berharga", "Masyarakat menjauhi pencuri karena takut sanksi", "Polisi menilang pengendara ugal-ugalan", "Keluarga merayakan hari raya bersama"], correct: 0 },
+        { text: "Ilustrasi: warga saling menegur ketika ada yang membuang sampah sembarangan. Fungsi nilai sosial dalam kasus tersebut adalah sebagai...", options: ["Kontrol sosial", "Alat pemersatu", "Petunjuk arah", "Penentu peran"], correct: 0 },
+        { text: "Berdasarkan klasifikasi Notonagoro, makanan dan pakaian termasuk ke dalam jenis nilai...", options: ["Nilai material", "Nilai vital", "Nilai kerohanian", "Nilai estetika"], correct: 0 },
+        { text: "Seorang petani menggunakan cangkul untuk bertani, seorang guru menggunakan laptop untuk mengajar. Kedua alat tersebut termasuk contoh nilai...", options: ["Nilai vital", "Nilai material", "Nilai kebenaran", "Nilai religius"], correct: 0 },
+        { text: "Melihat lukisan pemandangan membuat hati tenang (nilai estetika), sedangkan membantu korban bencana karena rasa kemanusiaan (nilai etika). Pernyataan yang membedakan keduanya adalah...", options: ["Estetika berkaitan dengan keindahan, etika dengan kebaikan moral", "Estetika bersumber dari akal, etika dari perasaan", "Estetika bersifat mutlak, etika relatif", "Estetika selalu berwujud benda"], correct: 0 },
+        { text: "Masyarakat Bali melaksanakan upacara keagamaan. Nilai religius dalam aktivitas tersebut bersifat...", options: ["Mutlak dan bersumber dari keyakinan", "Sementara dan berubah", "Tergantung situasi", "Berorientasi materi"], correct: 0 },
+        { text: "Budaya gotong royong di kampung dipertahankan mati-matian dan dianggap lebih penting dibanding nilai lainnya. Hal ini menunjukkan karakteristik nilai...", options: ["Nilai dominan", "Internalized value", "Nilai vital", "Nilai kerohanian"], correct: 0 },
+        { text: "Seseorang secara spontan mengembalikan dompet yang ditemukan karena jujur sudah menjadi kebiasaan bawah sadar. Ini adalah contoh nilai yang...", options: ["Mendarah daging (internalized value)", "Nilai dominan", "Nilai material", "Nilai estetika"], correct: 0 },
+        { text: "Norma sosial adalah perwujudan konkret dari nilai sosial. Hal ini berarti...", options: ["Nilai diwujudkan melalui aturan/sanksi yang jelas", "Norma bersifat abstrak", "Norma tidak berhubungan dengan nilai", "Nilai lebih lemah dari norma"], correct: 0 },
+        { text: "Nilai: 'Menghargai waktu'. Norma konkret yang sesuai adalah...", options: ["Membiasakan datang tepat waktu dalam setiap janji", "Datang terlambat diperbolehkan", "Membuang waktu untuk hal tidak berguna", "Menunda-nunda pekerjaan"], correct: 0 },
+        { text: "Saat makan, seseorang bersendawa tanpa ditutup mulut, mendapat cemoohan ringan. Ini termasuk tingkatan norma...", options: ["Cara (Usage)", "Kebiasaan (Folkways)", "Tata kelakuan (Mores)", "Adat istiadat"], correct: 0 },
+        { text: "Di suatu daerah, kebiasaan memberi salam kepada orang tua yang lewat sudah membudaya. Jika dilanggar hanya ditegur ringan. Tingkatan norma tersebut adalah...", options: ["Kebiasaan (Folkways)", "Usage", "Mores", "Customs"], correct: 0 },
+        { text: "Perbedaan sanksi antara Folkways dan Mores terletak pada...", options: ["Folkways cemoohan/sindiran, Mores hukuman moral atau adat yang lebih berat", "Folkways sanksi berat penjara, Mores teguran", "Keduanya sama", "Folkways dikucilkan permanen"], correct: 0 },
+        { text: "Seseorang melanggar aturan adat dengan menikah satu marga, diusir dari kampung. Norma yang dilanggar termasuk tingkatan...", options: ["Adat Istiadat (Customs)", "Hukum", "Cara", "Kebiasaan"], correct: 0 },
+        { text: "Ciri utama norma hukum yang membedakannya dengan norma adat adalah...", options: ["Sanksi tegas berupa denda/penjara dan dibuat oleh negara", "Tidak tertulis", "Hanya berlaku di desa", "Tidak memaksa"], correct: 0 },
+        { text: "Cuplikan kitab suci: 'Janganlah kamu mendekati zina'. Sanksi pelanggarannya bersifat ukhrawi. Norma tersebut adalah...", options: ["Norma agama", "Norma kesopanan", "Norma kesusilaan", "Norma hukum"], correct: 0 },
+        { text: "Seseorang berbohong lalu merasa bersalah dan menyesal mendalam. Pelanggaran ini termasuk norma...", options: ["Norma kesusilaan", "Kesopanan", "Agama", "Hukum"], correct: 0 },
+        { text: "Saat menghadiri acara resmi pernikahan, tamu diharapkan berpakaian rapi dan sopan. Aturan ini termasuk norma...", options: ["Norma kesopanan", "Hukum", "Agama", "Kesusilaan"], correct: 0 },
+        { text: "Pak Budi melanggar lampu merah, ditilang polisi. Sifat norma hukum yang tampak adalah...", options: ["Mengikat dan memaksa secara tegas", "Fleksibel", "Hanya sanksi sosial", "Tidak tertulis"], correct: 0 },
+        { text: "Fungsi utama norma sosial dalam masyarakat adalah...", options: ["Menciptakan ketertiban dan melindungi hak warga", "Membatasi semua kebebasan", "Menghilangkan konflik", "Membuat aturan tidak jelas"], correct: 0 },
+        { text: "Dulu pergaulan pacaran di tempat umum dianggap tabu, kini lebih longgar. Ini menunjukkan bahwa nilai dan norma bersifat...", options: ["Relatif (berubah sesuai waktu dan tempat)", "Mutlak", "Kekal", "Universal"], correct: 0 },
+        { text: "Manakah kombinasi nilai, norma, dan sanksi yang paling tepat?", options: ["Nilai ketertiban - norma mematuhi rambu lalu lintas - sanksi tilang/denda", "Nilai kejujuran - norma tidak mencontek - sanksi dikucilkan", "Nilai keindahan - norma membuang sampah - sanksi penjara", "Nilai kekeluargaan - norma bertengkar - sanksi adat"], correct: 0 },
+        { text: "Pelanggaran norma meningkat di masyarakat menyebabkan anomi. Dampak runtuhnya kepatuhan terhadap norma adalah...", options: ["Timbul kekacauan dan hilangnya arah moral", "Masyarakat makin tertib", "Semua warga senang", "Norma baru otomatis terbentuk"], correct: 0 },
+        { text: "Menurut Soerjono Soekanto, kelompok sosial adalah...", options: ["Himpunan manusia dengan hubungan timbal balik dan kesadaran anggota", "Kumpulan manusia tanpa interaksi", "Kerumunan spontan", "Orang-orang yang bersifat semu"], correct: 0 },
+        { text: "Syarat kelompok sosial: adanya kesadaran anggota sebagai bagian kelompok, interaksi, dan faktor pengikat. Contoh yang memenuhi adalah...", options: ["Keluarga Pak RT yang memiliki aturan dan tujuan bersama", "Penonton bioskop", "Antrean sembako", "Pengguna lift"], correct: 0 },
+        { text: "Pembentukan kelompok buruh pabrik didorong agar pekerjaan lebih efisien. Faktor pendorong tersebut adalah...", options: ["Meningkatkan efisiensi kerja", "Kesamaan darah", "Mempertahankan hidup", "Kesamaan geografis"], correct: 0 },
+        { text: "Paguyuban perantau Minang di Jakarta terbentuk karena sama-sama berasal dari Sumatera Barat. Faktor pendorongnya adalah...", options: ["Geografis (daerah asal)", "Genealogi", "Efisiensi kerja", "Ancaman luar"], correct: 0 },
+        { text: "Kelompok baru masih canggung, mencari aturan dan orientasi. Tahap ini disebut...", options: ["Forming", "Storming", "Norming", "Performing"], correct: 0 },
+        { text: "Organisasi mahasiswa dilanda perbedaan pendapat soal ketua, terjadi konflik internal. Tahap perkembangan kelompok menurut Tuckman adalah...", options: ["Storming", "Forming", "Norming", "Adjourning"], correct: 0 },
+        { text: "Ciri tahap Norming dalam kelompok adalah...", options: ["Aturan disepakati bersama dan integrasi mulai terbentuk", "Anggota canggung", "Konflik terbuka", "Kelompok bubar"], correct: 0 },
+        { text: "Panitia pentas seni dibubarkan setelah acara selesai. Tahap ini disebut...", options: ["Adjourning", "Storming", "Performing", "Norming"], correct: 0 },
+        { text: "Hubungan intim, harmonis, alami, kekal seperti keluarga adalah ciri dari...", options: ["Paguyuban (Gemeinschaft)", "Patembayan (Gesellschaft)", "Kelompok sekunder", "Kelompok semu"], correct: 0 },
+        { text: "Contoh Gemeinschaft by blood adalah...", options: ["Keluarga sedarah", "RW", "Serikat pekerja", "Partai politik"], correct: 0 },
+        { text: "Organisasi perusahaan yang bersifat kontraktual dan berorientasi keuntungan merupakan contoh...", options: ["Patembayan", "Paguyuban", "Kelompok primer", "In-group"], correct: 0 },
+        { text: "Kelompok dengan hubungan emosional mendalam, tatap muka, dan kecil adalah...", options: ["Kelompok primer", "Kelompok sekunder", "Patembayan", "Massa"], correct: 0 },
+        { text: "Perbedaan mendasar kelompok primer dan sekunder adalah...", options: ["Primer bersifat personal intim, sekunder impersonal dan formal", "Primer jumlahnya besar, sekunder kecil", "Primer tidak memiliki aturan", "Sekunder selalu keluarga"], correct: 0 },
+        { text: "Jargon 'Kami Arek Suroboyo' menunjukkan identitas kelompok. Konsep ini disebut...", options: ["In-group feeling", "Out-group", "Reference group", "Membership group"], correct: 0 },
+        { text: "Stereotip negatif terhadap kelompok lain, misal 'mereka dari timur kurang modern', termasuk fenomena...", options: ["Out-group", "In-group", "Kelompok primer", "Paguyuban"], correct: 0 },
+        { text: "Seorang siswa terdaftar resmi di kelas XII IPS 2, ia adalah anggota...", options: ["Membership group", "Reference group", "Out-group", "Crowd"], correct: 0 },
+        { text: "Seseorang meniru gaya hidup boyband Korea, padahal bukan anggota. Kelompok idolanya berfungsi sebagai...", options: ["Reference group", "Membership group", "Primary group", "In-group"], correct: 0 },
+        { text: "Kelompok sosial semu tidak memiliki struktur dan interaksi berkelanjutan. Ciri utamanya...", options: ["Bersifat sementara, tidak ada kesadaran kelompok", "Terorganisir rapi", "Punya aturan tegas", "Ada hubungan timbal balik"], correct: 0 },
+        { text: "Kerumunan orang melihat kecelakaan di jalan termasuk jenis...", options: ["Kerumunan (Crowd)", "Publik", "Massa", "Kelompok sekunder"], correct: 0 },
+        { text: "Publik merupakan kumpulan manusia yang...", options: ["Disatukan media komunikasi tanpa tatap muka langsung", "Berkumpul fisik di satu tempat", "Struktur formal", "Punya pemimpin tetap"], correct: 0 },
+        { text: "Pengerahan massa simpatisan partai untuk kampanye pemilu adalah contoh...", options: ["Massa", "Kerumunan", "Publik", "Paguyuban"], correct: 0 },
+        { text: "Dinamika kelompok adalah proses perubahan kelompok akibat interaksi. Pernyataan tepat...", options: ["Analisis hubungan timbal balik dan perubahan perilaku", "Kelompok statis tanpa perubahan", "Hanya terjadi konflik", "Kelompok tidak dipengaruhi eksternal"], correct: 0 },
+        { text: "Pergantian ketua RW menyebabkan perubahan program kerja. Faktor internal dinamika adalah...", options: ["Pergantian pemimpin", "Bencana alam", "Budaya asing", "Ancaman kelompok luar"], correct: 0 },
+        { text: "Banjir bandang memaksa warga mengungsi dan mengubah struktur RT. Faktor eksternal dinamika adalah...", options: ["Bencana alam", "Konflik internal", "Perubahan tujuan kelompok", "Perbedaan paham"], correct: 0 },
+        { text: "Jika terjadi perpecahan di dalam suatu kelompok, dampak negatif yang mungkin terjadi adalah...", options: ["Disintegrasi dan tujuan kelompok terganggu", "Solidaritas meningkat", "Kelompok makin kuat", "Tidak berdampak"], correct: 0 }
+    ];
+
+    // Fungsi mengacak array (Fisher-Yates)
+    function shuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    // Membuat salinan soal dengan opsi diacak, beserta mapping jawaban baru
+    function buildShuffledQuestions() {
+        // 1. acak urutan soal
+        const shuffledQuestions = shuffleArray([...originalQuestions]);
+        // 2. untuk setiap soal, acak urutan opsi dan sesuaikan index jawaban
+        const finalQuestions = shuffledQuestions.map(q => {
+            const originalOpts = [...q.options];
+            const originalCorrectIndex = q.correct;
+            const correctText = originalOpts[originalCorrectIndex];
+            // buat array objek {text, originalIdx}
+            let optWithIdx = originalOpts.map((text, idx) => ({ text, originalIdx: idx }));
+            optWithIdx = shuffleArray(optWithIdx);
+            const newOptions = optWithIdx.map(item => item.text);
+            const newCorrectIndex = optWithIdx.findIndex(item => item.text === correctText);
+            return {
+                text: q.text,
+                options: newOptions,
+                correct: newCorrectIndex
+            };
+        });
+        return finalQuestions;
+    }
+
+    // State global
+    let currentQuestions = [];       // versi acak untuk ujian ini
+    let currentIndex = 0;
+    let userAnswers = [];
+    let cheatCount = 0;
+    let isSubmitted = false;
+    let quizActive = false;
+    let pesertaNama = "";
+    let modalActive = false;
+    let hiddenTimeStart = null;
+
+    const dynamicDiv = document.getElementById("dynamicContent");
+    const modal = document.getElementById("warningModal");
+    const modalConfirmBtn = document.getElementById("modalConfirmBtn");
+
+    function updateCheatUI() {
+        const cheatSpan = document.getElementById("cheatCountDisplay");
+        if(cheatSpan) cheatSpan.innerText = `⚠️ Peringatan: ${cheatCount}/5`;
+        if(cheatCount >= 5 && quizActive && !isSubmitted) {
+            triggerBan("Anda telah 5 kali pindah tab! Ujian dibatalkan.");
+        }
+    }
+
+    function triggerBan(message) {
+        if(modalActive) return;
+        modalActive = true;
+        document.getElementById("modalTitle").innerText = "⛔ Ujian Dihentikan";
+        document.getElementById("modalMessage").innerText = message;
+        modal.classList.add("active");
+        quizActive = false;
+    }
+
+    function resetToWelcome() {
+        currentIndex = 0;
+        userAnswers = [];
+        cheatCount = 0;
+        isSubmitted = false;
+        quizActive = false;
+        pesertaNama = "";
+        hiddenTimeStart = null;
+        renderWelcomeScreen();
+    }
+
+    function renderWelcomeScreen() {
+        dynamicDiv.innerHTML = `
+            <div class="welcome-screen">
+                <h1>📚 ASAT Sosiologi</h1>
+                <p>Kelas X Semester Genap<br>50 Soal Pilihan Ganda (Acak & Variasi)</p>
+                <input type="text" id="fullnameInput" class="name-input" placeholder="Masukkan Nama Lengkap" autocomplete="off">
+                <button id="startExamBtn" class="start-btn">🎯 Mulai Ujian</button>
+                <div style="margin-top: 24px; font-size: 12px; color: gray;">⚡ Mode anti-cheat + soal otomatis berganti setelah menjawab</div>
+            </div>
+        `;
+        const startBtn = document.getElementById("startExamBtn");
+        const nameInput = document.getElementById("fullnameInput");
+        if(startBtn) {
+            startBtn.addEventListener("click", () => {
+                const nama = nameInput.value.trim();
+                if(nama === "") {
+                    nameInput.style.borderColor = "#cc3b3b";
+                    nameInput.placeholder = "Nama harus diisi!";
+                    return;
+                }
+                pesertaNama = nama;
+                // Set soal baru diacak (urutan soal & opsi)
+                currentQuestions = buildShuffledQuestions();
+                userAnswers = new Array(currentQuestions.length).fill(null);
+                cheatCount = 0;
+                isSubmitted = false;
+                currentIndex = 0;
+                quizActive = true;
+                renderQuizInterface();
+            });
+            nameInput.addEventListener("input", () => nameInput.style.borderColor = "#e2edf7");
+        }
+    }
+
+    // auto-save jawaban & lanjut ke berikutnya (tanpa popup)
+    function selectAnswer(selectedIdx) {
+        if(!quizActive || isSubmitted) return;
+        // simpan jawaban
+        userAnswers[currentIndex] = selectedIdx;
+        // efek visual refresh soal
+        renderQuizInterface();
+        // setelah menjawab, otomatis pindah ke soal berikutnya jika belum selesai
+        if(currentIndex + 1 < currentQuestions.length) {
+            setTimeout(() => {
+                if(quizActive && !isSubmitted) {
+                    currentIndex++;
+                    renderQuizInterface();
+                }
+            }, 180);
+        } else {
+            // jika ini soal terakhir dan sudah terjawab semua, bisa langsung atau tetap menunggu submit? sesuai kemauan: tapi user friendly, tidak auto submit
+            // karena sesuai instruksi: otomatis ke soal berikutnya setelah dijawab. Untuk soal ke-50 tetap menunggu submit manual
+        }
+    }
+
+    function renderQuizInterface() {
+        if(!quizActive) return;
+        if(isSubmitted) {
+            let correctCount = 0;
+            for(let i=0;i<currentQuestions.length;i++) {
+                if(userAnswers[i] !== null && userAnswers[i] === currentQuestions[i].correct) correctCount++;
+            }
+            const nilai = Math.round((correctCount/50)*100);
+            dynamicDiv.innerHTML = `
+                <div class="header-stats">
+                    <span class="badge-progress">✅ Selesai</span>
+                    <span class="nama-badge">👤 ${escapeHtml(pesertaNama)}</span>
+                    <button class="menu-btn" id="menuFromResult">🏠 Menu Utama</button>
+                </div>
+                <div class="result-area">
+                    <h2>📄 Hasil Ujian</h2>
+                    <p style="font-size:1.8rem; font-weight:bold;">${correctCount} / 50</p>
+                    <p>Nilai: ${nilai}</p>
+                    <button class="restart-quiz" id="restartQuizBtn">🔄 Ujian Baru (Acak)</button>
+                </div>
+            `;
+            const restartBtn = document.getElementById("restartQuizBtn");
+            const menuResult = document.getElementById("menuFromResult");
+            if(restartBtn) restartBtn.onclick = () => { resetToWelcome(); };
+            if(menuResult) menuResult.onclick = () => { resetToWelcome(); };
+            return;
+        }
+
+        const q = currentQuestions[currentIndex];
+        const selectedVal = userAnswers[currentIndex];
+        const optionsHtml = q.options.map((opt, idx) => {
+            const isSelected = (selectedVal === idx);
+            return `<div class="opt-item ${isSelected ? 'selected' : ''}" data-opt-index="${idx}">${escapeHtml(opt)}</div>`;
+        }).join('');
+
+        const headerHtml = `
+            <div class="header-stats">
+                <span class="badge-progress">📌 ${currentIndex+1} / ${currentQuestions.length}</span>
+                <span class="cheat-counter" id="cheatCountDisplay">⚠️ Peringatan: ${cheatCount}/5</span>
+                <button class="menu-btn" id="menuInQuiz">🏠 Menu Utama</button>
+            </div>
+            <div class="nama-badge" style="margin-bottom: 8px; display: inline-block;">👤 ${escapeHtml(pesertaNama)}</div>
+        `;
+        const mainContent = `
+            ${headerHtml}
+            <div class="question-card">
+                <div class="question-text">${currentIndex+1}. ${escapeHtml(q.text)}</div>
+                <div class="options-list" id="optionsContainer">
+                    ${optionsHtml}
+                </div>
+            </div>
+            <div class="nav-buttons">
+                <button class="nav-btn" id="prevBtn" ${currentIndex===0 ? 'disabled style="opacity:0.5"' : ''}>◀ Sebelumnya</button>
+                <button class="nav-btn" id="nextBtn">Berikutnya ▶</button>
+            </div>
+            <div class="submit-area">
+                <button class="submit-btn" id="submitExamBtn">📥 Kumpulkan Jawaban</button>
+            </div>
+        `;
+        dynamicDiv.innerHTML = mainContent;
+
+        // pasang event listener opsi
+        document.querySelectorAll('.opt-item').forEach(el => {
+            el.addEventListener('click', (e) => {
+                const idx = parseInt(el.dataset.optIndex);
+                selectAnswer(idx);
+            });
+        });
+        document.getElementById("prevBtn")?.addEventListener("click", () => {
+            if(currentIndex > 0) { currentIndex--; renderQuizInterface(); }
+        });
+        document.getElementById("nextBtn")?.addEventListener("click", () => {
+            if(currentIndex < currentQuestions.length-1) { currentIndex++; renderQuizInterface(); }
+        });
+        document.getElementById("submitExamBtn")?.addEventListener("click", () => {
+            const unanswered = userAnswers.filter(a => a === null).length;
+            if(unanswered > 0 && !confirm(`Masih ada ${unanswered} soal belum dijawab. Tetap kumpulkan?`)) return;
+            isSubmitted = true;
+            renderQuizInterface();
+        });
+        document.getElementById("menuInQuiz")?.addEventListener("click", () => {
+            if(confirm("Kembali ke menu utama? Semua progres akan hilang.")) resetToWelcome();
+        });
+        updateCheatUI();
+    }
+
+    function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
+    // Anti Cheat Visibility (tanpa alert, hanya tambah counter dan animasi)
+    function handleVisibilityChange() {
+        if(!quizActive || isSubmitted) return;
+        if(document.hidden) {
+            hiddenTimeStart = Date.now();
+        } else {
+            if(hiddenTimeStart !== null && !modalActive) {
+                cheatCount++;
+                updateCheatUI();
+                const cheatSpan = document.getElementById("cheatCountDisplay");
+                if(cheatSpan) {
+                    cheatSpan.classList.add("cheat-warning");
+                    setTimeout(() => cheatSpan.classList.remove("cheat-warning"), 400);
+                }
+                if(cheatCount >= 5) {
+                    triggerBan("Anda telah 5 kali pindah tab/keluar halaman. Ujian dibatalkan!");
+                }
+            }
+            hiddenTimeStart = null;
+        }
+    }
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // Fullscreen mode tanpa paksa popup
+    function requestFS() { if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(e=>{}); }
+    const rootDiv = document.getElementById("appRoot");
+    rootDiv.addEventListener("touchstart", () => requestFS(), { once: true });
+    rootDiv.addEventListener("click", () => requestFS(), { once: true });
+
+    modalConfirmBtn.addEventListener("click", () => {
+        modal.classList.remove("active");
+        modalActive = false;
+        resetToWelcome();
+    });
+
+    renderWelcomeScreen();
+</script>
+</body>
+</html>
